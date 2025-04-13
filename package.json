@@ -1,0 +1,51 @@
+{
+  "name": "theurllist",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "db:init": "psql -d theurllist -f src/utils/init.sql",
+    "lint": "eslint src/**/*.{js,jsx,astro}",
+    "format": "prettier --write src/**/*.{js,jsx,astro,css}",
+    "test": "vitest",
+    "test:watch": "vitest watch"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.0.0",
+    "@astrojs/tailwind": "^5.1.5",
+    "@nanostores/react": "^0.7.1",
+    "astro": "^5.6.1",
+    "nanostores": "^0.9.3",
+    "pg": "^8.14.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "postgres": "^3.4.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.3.3"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^8.45.0",
+    "eslint-plugin-astro": "^0.30.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-react": "^7.33.0",
+    "happy-dom": "^17.4.4",
+    "jsdom": "^26.1.0",
+    "msw": "^2.7.4",
+    "prettier": "^3.0.0",
+    "prettier-plugin-astro": "^0.12.0",
+    "vitest": "^3.1.1"
+  }
+}
