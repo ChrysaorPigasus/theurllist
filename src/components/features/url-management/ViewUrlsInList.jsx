@@ -76,7 +76,8 @@ export default function ViewUrlsInList({ listId }) {
     }
 
     try {
-      const result = await addUrlToList(activeListId, newUrlData);
+      // Use listId from props instead of activeListId
+      const result = await addUrlToList(listId, newUrlData);
       // Check if component is still mounted before updating state
       if (isMounted.current) {
         setNewUrlData({ url: '', name: '', title: '', description: '', image: '' });

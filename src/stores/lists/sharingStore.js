@@ -1,93 +1,116 @@
 import { map } from 'nanostores';
-import { updateCustomUrl as dbUpdateCustomUrl, publishList as dbPublishList } from '../../utils/database';
-import { listUIState, getActiveList } from './listStore';
+import { getActiveList } from '../urlListStore';
 
-// Sharing-specific actions
+// UI State for sharing operations
+export const sharingUIState = map({
+  isLoading: false,
+  error: null,
+  isPublished: false,
+  shareUrl: null
+});
+
+// Get a shareable URL for a list
+export function getShareableUrl(list) {
+  if (!list) return null;
+  
+  const customUrl = list.customUrl;
+  return customUrl 
+    ? `${window.location.origin}/list/${customUrl}` 
+    : `${window.location.origin}/list/${list.id}`;
+}
+
+// Update the custom URL for a list
 export async function updateCustomUrl(listId, customUrl) {
-  listUIState.setKey('isLoading', true);
-  listUIState.setKey('error', null);
+  sharingUIState.setKey('isLoading', true);
+  sharingUIState.setKey('error', null);
   
   try {
-    const updatedList = await dbUpdateCustomUrl(listId, customUrl);
-    const activeList = getActiveList();
-    if (activeList) {
-      activeList.customUrl = updatedList.customUrl;
-    }
-    return true;
-  } catch (err) {
-    console.error('Failed to update custom URL:', err);
-    listUIState.setKey('error', 'Failed to update custom URL. This URL might already be taken.');
-    return false;
-  } finally {
-    listUIState.setKey('isLoading', false);
-  }
-}
-
-export async function publishList(listId) {
-  listUIState.setKey('isLoading', true);
-  listUIState.setKey('error', null);
-  
-  try {
-    const publishedList = await dbPublishList(listId);
-    const activeList = getActiveList();
-    if (activeList) {
-      activeList.isPublished = true;
-      activeList.publishedAt = publishedList.publishedAt;
-    }
-    return true;
-  } catch (err) {
-    console.error('Failed to publish list:', err);
-    listUIState.setKey('error', 'Failed to publish list. Please try again.');
-    return false;
-  } finally {
-    listUIState.setKey('isLoading', false);
-  }
-}
-
-export async function shareList(listId) {
-  listUIState.setKey('isLoading', true);
-  listUIState.setKey('error', null);
-  
-  try {
-    // First ensure the list is published
-    const published = await publishList(listId);
-    if (!published) {
-      throw new Error('Failed to publish list');
+    const response = await fetch(`/api/lists/${listId}/custom-url`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ customUrl })
+    });
+    
+    if (!response.ok) {
+      throw new Error('URL already taken');
     }
     
-    const list = getActiveList();
-    if (!list) {
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Failed to update custom URL:', err);
+    sharingUIState.setKey('error', 'The custom URL is already taken. Please try another.');
+    return null;
+  } finally {
+    sharingUIState.setKey('isLoading', false);
+  }
+}
+
+// Publish a list to make it publicly accessible
+export async function publishList(listId) {
+  sharingUIState.setKey('isLoading', true);
+  sharingUIState.setKey('error', null);
+  
+  try {
+    const response = await fetch(`/api/lists/${listId}/publish`, {
+      method: 'POST'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Publishing failed');
+    }
+    
+    const data = await response.json();
+    sharingUIState.setKey('isPublished', true);
+    sharingUIState.setKey('shareUrl', data.shareUrl);
+    return data;
+  } catch (err) {
+    console.error('Failed to publish list:', err);
+    sharingUIState.setKey('error', 'Failed to publish the list. Please try again.');
+    return null;
+  } finally {
+    sharingUIState.setKey('isLoading', false);
+  }
+}
+
+// Share a list with others
+export async function shareList(customUrl) {
+  sharingUIState.setKey('isLoading', true);
+  sharingUIState.setKey('error', null);
+  
+  try {
+    const activeList = getActiveList();
+    
+    if (!activeList) {
       throw new Error('List not found');
     }
     
-    // Get the shareable URL
-    const shareUrl = getShareableUrl(list);
+    // First publish the list
+    const publishResult = await publishList(activeList.id);
     
-    // If available, use the Web Share API
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      await navigator.share({
-        title: `URL List: ${list.name}`,
-        text: `Check out my URL list: ${list.name}`,
-        url: shareUrl
-      });
-    } else {
-      // Fallback to copying to clipboard
-      await navigator.clipboard.writeText(shareUrl);
+    if (!publishResult) {
+      throw new Error('Failed to publish list');
     }
     
-    return true;
+    // Then update the custom URL if provided
+    if (customUrl) {
+      await updateCustomUrl(activeList.id, customUrl);
+    }
+    
+    // Get the final share URL
+    const shareUrl = customUrl 
+      ? `${window.location.origin}/list/${customUrl}` 
+      : `${window.location.origin}/list/${activeList.id}`;
+      
+    sharingUIState.setKey('shareUrl', shareUrl);
+    return shareUrl;
   } catch (err) {
     console.error('Failed to share list:', err);
-    listUIState.setKey('error', 'Failed to share list. Please try again.');
-    return false;
+    sharingUIState.setKey('error', 'Failed to share list. ' + err.message);
+    return null;
   } finally {
-    listUIState.setKey('isLoading', false);
+    sharingUIState.setKey('isLoading', false);
   }
-}
-
-// Helper functions
-export function getShareableUrl(list) {
-  if (!list) return '';
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  return `${baseUrl}/list/${list.customUrl || list.id}`;
 }

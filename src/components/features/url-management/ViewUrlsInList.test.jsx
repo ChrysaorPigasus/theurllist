@@ -1,21 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ViewUrlsInList from './ViewUrlsInList';
-import { listStore, listUIState } from '../../../stores/lists/listStore';
 
-// Mock the stores module
-vi.mock('../../../stores/lists/listStore', () => ({
-  listStore: {
-    get: vi.fn(),
-    set: vi.fn(),
-    subscribe: vi.fn()
-  },
-  listUIState: {
-    get: vi.fn(),
-    set: vi.fn(),
-    subscribe: vi.fn()
-  },
-  setActiveList: vi.fn()
+// Import our mocks
+import { 
+  mockListStore, 
+  mockListUIState, 
+  mockSetActiveList,
+  resetMocks
+} from '../../../test/storeMocks';
+
+// Mock the stores/lists module
+vi.mock('../../../stores/lists', () => ({
+  listStore: mockListStore,
+  listUIState: mockListUIState,
+  setActiveList: mockSetActiveList
+}));
+
+// Mock the nanostores/react module
+vi.mock('@nanostores/react', () => ({
+  useStore: (store) => {
+    if (store === mockListStore) {
+      return mockListStore.mockState;
+    }
+    if (store === mockListUIState) {
+      return mockListUIState.mockState;
+    }
+    return {};
+  }
 }));
 
 describe('ViewUrlsInList', () => {
@@ -48,10 +60,18 @@ describe('ViewUrlsInList', () => {
   };
 
   beforeEach(() => {
-    // Reset mock state
-    listStore.set({ lists: [mockList], activeListId: '123' });
-    listUIState.set({ isLoading: false, error: null });
-    vi.clearAllMocks();
+    resetMocks();
+    
+    // Set mock states for this component
+    mockListStore.mockState = { 
+      lists: [mockList], 
+      activeListId: '123' 
+    };
+    
+    mockListUIState.mockState = { 
+      isLoading: false, 
+      error: null 
+    };
   });
 
   it('renders the list of URLs with titles and dates', () => {
@@ -66,7 +86,7 @@ describe('ViewUrlsInList', () => {
   });
 
   it('shows loading state', () => {
-    listUIState.set({ isLoading: true, error: null });
+    mockListUIState.mockState = { isLoading: true, error: null };
     render(<ViewUrlsInList listId="123" />);
     
     expect(screen.getByTestId('spinner')).toBeInTheDocument();
@@ -93,10 +113,10 @@ describe('ViewUrlsInList', () => {
   });
 
   it('shows empty state when list has no URLs', () => {
-    listStore.set({
+    mockListStore.mockState = {
       lists: [{ ...mockList, urls: [] }],
       activeListId: '123'
-    });
+    };
     
     render(<ViewUrlsInList listId="123" />);
     expect(screen.getByText(/no urls in this list yet/i)).toBeInTheDocument();
@@ -158,7 +178,7 @@ describe('ViewUrlsInList', () => {
   });
 
   it('displays error state when present', () => {
-    listUIState.set({ isLoading: false, error: 'Failed to load URLs' });
+    mockListUIState.mockState = { isLoading: false, error: 'Failed to load URLs' };
     
     render(<ViewUrlsInList listId="123" />);
     
@@ -176,6 +196,6 @@ describe('ViewUrlsInList', () => {
 
   it('calls setActiveList with listId on mount', () => {
     render(<ViewUrlsInList listId="123" />);
-    expect(vi.mocked(setActiveList)).toHaveBeenCalledWith('123');
+    expect(mockSetActiveList).toHaveBeenCalledWith('123');
   });
 });

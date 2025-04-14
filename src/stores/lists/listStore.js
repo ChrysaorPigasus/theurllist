@@ -1,63 +1,95 @@
-import { atom, map } from 'nanostores';
+import { map } from 'nanostores';
+import { isLoading, error, urlListStore } from '../urlListStore';
 
-// UI State
-export const listUIState = map({
-  isLoading: false,
-  error: null
-});
+// Create dedicated stores for the lists module
+export const listStore = map({ lists: [] });
+export const listUIState = map({ isLoading: false, error: null });
 
-// Domain data
-export const listStore = map({
-  lists: [],
-  activeListId: null
-});
-
-// Actions
+// Initialize the list store with data from API
 export async function initializeStore() {
   listUIState.setKey('isLoading', true);
   listUIState.setKey('error', null);
-  
+
   try {
     const response = await fetch('/api/lists');
+    if (!response.ok) {
+      throw new Error('Failed to initialize lists');
+    }
+    
     const lists = await response.json();
-    listStore.set({ lists, activeListId: null });
+    listStore.setKey('lists', lists);
+    return lists;
   } catch (err) {
-    console.error('Failed to initialize store:', err);
+    console.error('Failed to initialize lists:', err);
     listUIState.setKey('error', 'Failed to load lists. Please try again.');
+    return [];
   } finally {
     listUIState.setKey('isLoading', false);
   }
 }
 
+// Set the active list by ID
+export function setActiveList(listId) {
+  urlListStore.setKey('activeListId', listId);
+}
+
+// Get the currently active list
+export function getActiveList() {
+  const { lists, activeListId } = urlListStore.get();
+  return lists.find(list => list.id === activeListId);
+}
+
+// Fetch all lists from the API
 export async function fetchLists() {
   listUIState.setKey('isLoading', true);
   listUIState.setKey('error', null);
 
   try {
     const response = await fetch('/api/lists');
+    if (!response.ok) {
+      throw new Error('Failed to fetch lists');
+    }
+    
     const lists = await response.json();
-    listStore.set({ lists, activeListId: null });
+    urlListStore.setKey('lists', lists);
+    listStore.setKey('lists', lists);
+    return lists;
   } catch (err) {
     console.error('Failed to fetch lists:', err);
-    listUIState.setKey('error', 'Failed to load lists. Please try again.');
+    listUIState.setKey('error', 'Failed to fetch lists. Please try again.');
+    return [];
   } finally {
     listUIState.setKey('isLoading', false);
   }
 }
 
-export async function createList(name, customUrl = null) {
+// Create a new list
+export async function createList(name) {
   listUIState.setKey('isLoading', true);
   listUIState.setKey('error', null);
-  
+
   try {
     const response = await fetch('/api/lists', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, customUrl })
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name })
     });
+
+    if (!response.ok) {
+      throw new Error('Failed to create list');
+    }
+
     const newList = await response.json();
-    const currentLists = listStore.get().lists;
-    listStore.set({ ...listStore.get(), lists: [...currentLists, newList] });
+    
+    // Update the lists in both stores
+    const currentLists = urlListStore.get().lists;
+    urlListStore.setKey('lists', [...currentLists, newList]);
+    
+    const currentListStoreData = listStore.get().lists;
+    listStore.setKey('lists', [...currentListStoreData, newList]);
+    
     return newList;
   } catch (err) {
     console.error('Failed to create list:', err);
@@ -68,18 +100,32 @@ export async function createList(name, customUrl = null) {
   }
 }
 
+// Delete a list by ID
 export async function deleteList(listId) {
   listUIState.setKey('isLoading', true);
   listUIState.setKey('error', null);
-  
+
   try {
-    await fetch(`/api/lists?id=${listId}`, { method: 'DELETE' });
-    const currentLists = listStore.get().lists;
-    listStore.set({
-      ...listStore.get(),
-      lists: currentLists.filter(list => list.id !== listId),
-      activeListId: listStore.get().activeListId === listId ? null : listStore.get().activeListId
+    const response = await fetch(`/api/lists/${listId}`, {
+      method: 'DELETE'
     });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete list');
+    }
+
+    // Update the lists in both stores
+    const currentLists = urlListStore.get().lists;
+    urlListStore.setKey('lists', currentLists.filter(list => list.id !== listId));
+    
+    const currentListStoreData = listStore.get().lists;
+    listStore.setKey('lists', currentListStoreData.filter(list => list.id !== listId));
+    
+    // Reset activeListId if the deleted list was active
+    if (urlListStore.get().activeListId === listId) {
+      urlListStore.setKey('activeListId', null);
+    }
+    
     return true;
   } catch (err) {
     console.error('Failed to delete list:', err);
@@ -90,83 +136,38 @@ export async function deleteList(listId) {
   }
 }
 
-export function setActiveList(listId) {
-  listStore.setKey('activeListId', listId);
-}
-
-export function getActiveList() {
-  const { lists, activeListId } = listStore.get();
-  return lists.find(list => list.id === activeListId);
-}
-
+// Function to fetch details of a specific list
 export async function fetchListDetails(listId) {
-  if (!listId) return;
-  
-  // Ensure we have a valid numeric ID 
-  const parsedId = parseInt(listId, 10);
-  if (isNaN(parsedId)) {
-    listUIState.setKey('error', 'Invalid list ID format');
-    return null;
-  }
-  
   listUIState.setKey('isLoading', true);
   listUIState.setKey('error', null);
-  
+
   try {
-    console.log(`Fetching list details for list ID: ${parsedId}`);
-    const response = await fetch(`/api/lists/${parsedId}`);
-    
+    const response = await fetch(`/api/lists/${listId}`);
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch list details');
+      throw new Error('Failed to fetch list details');
     }
     
     const listDetails = await response.json();
-    console.log('Received list details:', listDetails);
-    console.log('URLs in list:', listDetails.urls ? listDetails.urls.length : 0);
     
-    const { lists } = listStore.get();
+    // Update the list in the store with the fetched details, including URLs
+    const currentLists = listStore.get().lists;
+    const updatedLists = currentLists.map(list => 
+      list.id === parseInt(listId) ? { ...list, ...listDetails } : list
+    );
     
-    // Find if we already have this list in our store
-    const existingListIndex = lists.findIndex(list => list.id === parsedId);
-    
-    // Create a new lists array with the updated or new list
-    let updatedLists;
-    if (existingListIndex >= 0) {
-      // Update existing list
-      updatedLists = [...lists];
-      updatedLists[existingListIndex] = {
-        ...updatedLists[existingListIndex],
-        ...listDetails,
-        urls: Array.isArray(listDetails.urls) ? listDetails.urls : []
-      };
-    } else {
-      // Add new list to the array
-      updatedLists = [
-        ...lists,
-        {
-          ...listDetails,
-          urls: Array.isArray(listDetails.urls) ? listDetails.urls : []
-        }
-      ];
+    // If the list doesn't exist in the store yet, add it
+    if (!currentLists.some(list => list.id === parseInt(listId))) {
+      updatedLists.push(listDetails);
     }
     
-    // Update the store with the new lists array and set active list
-    listStore.set({
-      lists: updatedLists,
-      activeListId: parsedId
-    });
-    
-    // Log the updated store state for debugging
-    const updatedStore = listStore.get();
-    const updatedList = updatedStore.lists.find(list => list.id === parsedId);
-    console.log('Updated store with list:', updatedList);
-    console.log('URLs in updated list:', updatedList?.urls ? updatedList.urls.length : 0);
+    // Update both stores
+    listStore.setKey('lists', updatedLists);
+    urlListStore.setKey('lists', updatedLists);
     
     return listDetails;
   } catch (err) {
     console.error('Failed to fetch list details:', err);
-    listUIState.setKey('error', err.message || 'Failed to load list details. Please try again.');
+    listUIState.setKey('error', 'Failed to fetch list details. Please try again.');
     return null;
   } finally {
     listUIState.setKey('isLoading', false);

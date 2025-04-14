@@ -26,8 +26,8 @@ export async function createList({ name, title, description, slug }) {
   ensureServerSide();
   try {
     const [list] = await sql`
-      INSERT INTO lists (name, title, description, slug)
-      VALUES (${name}, ${title}, ${description}, ${slug})
+      INSERT INTO lists (name, title, description, slug, created_at)
+      VALUES (${name}, ${title}, ${description}, ${slug}, NOW())
       RETURNING id, name, title, description, slug, created_at
     `;
     return list;
@@ -92,7 +92,7 @@ export async function updateCustomUrl(listId, customUrl) {
   try {
     const [updatedList] = await sql`
       UPDATE lists
-      SET slug = ${customUrl}, updated_at = NOW()
+      SET slug = ${customUrl}
       WHERE id = ${listId}
       RETURNING id, name, title, description, slug, created_at
     `;
@@ -108,8 +108,8 @@ export async function createLink({ name, title, description, url, image, list_id
   ensureServerSide();
   try {
     const [link] = await sql`
-      INSERT INTO links (name, title, description, url, image, list_id)
-      VALUES (${name}, ${title}, ${description}, ${url}, ${image}, ${list_id})
+      INSERT INTO links (name, title, description, url, image, list_id, created_at)
+      VALUES (${name}, ${title}, ${description}, ${url}, ${image}, ${list_id}, NOW())
       RETURNING id, name, title, description, url, image, list_id, created_at
     `;
     return link;

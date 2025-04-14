@@ -35,25 +35,75 @@ export async function GET({ request }) {
 export async function POST({ request }) {
   try {
     await initialize();
-    const { name, title, description, url, image, list_id } = await request.json();
+    const requestData = await request.json();
+    const { name, title, description, url, image, list_id } = requestData;
 
-    if (!url || !list_id) {
+    console.log('Received link creation request:', requestData);
+
+    if (!url) {
+      console.error('Missing URL in request');
       return new Response(JSON.stringify({ 
-        error: 'URL and List ID are required.' 
+        error: 'URL is required.' 
       }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const link = await createLink({ name, title, description, url, image, list_id });
+    if (!list_id) {
+      console.error('Missing list_id in request');
+      return new Response(JSON.stringify({ 
+        error: 'List ID is required.' 
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Convert list_id to number if it's a string
+    const numericListId = typeof list_id === 'string' ? parseInt(list_id, 10) : list_id;
+    
+    if (isNaN(numericListId)) {
+      console.error('Invalid list_id format:', list_id);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid list ID format.' 
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('Creating link with data:', { 
+      name, 
+      title, 
+      description, 
+      url, 
+      image, 
+      list_id: numericListId 
+    });
+
+    const link = await createLink({ 
+      name, 
+      title, 
+      description, 
+      url, 
+      image, 
+      list_id: numericListId 
+    });
+    
+    console.log('Successfully created link:', link);
+    
     return new Response(JSON.stringify(link), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error('API Error details:', error);
     logger.error(error, 'API Error: Failed to create link');
-    return new Response(JSON.stringify({ error: 'Failed to create link' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Failed to create link',
+      details: error.message 
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

@@ -166,3 +166,174 @@
 	      FROM lists l
 	      WHERE l.id = $1
 	    
+2025-04-14 19:19:50.184 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:19:50.184 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:19:50.184 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:20:25.165 CEST [4436] LOG:  checkpoint starting: time
+2025-04-14 19:20:25.324 CEST [4436] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.111 s, sync=0.010 s, total=0.160 s; sync files=2, longest=0.007 s, average=0.005 s; distance=2 kB, estimate=2 kB; lsn=0/1B2CFE8, redo lsn=0/1B2CF90
+2025-04-14 19:20:50.200 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:20:50.200 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:20:50.200 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:20:50.243 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:20:50.243 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:20:50.243 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:20:58.699 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:20:58.699 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:20:58.699 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:22:14.108 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:22:14.108 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:22:14.108 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:22:14.127 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:22:14.127 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:22:14.127 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:22:21.961 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:22:21.961 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:22:21.961 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:25:25.285 CEST [4436] LOG:  checkpoint starting: time
+2025-04-14 19:25:25.775 CEST [4436] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.438 s, sync=0.016 s, total=0.491 s; sync files=5, longest=0.006 s, average=0.004 s; distance=4 kB, estimate=4 kB; lsn=0/1B2E3E0, redo lsn=0/1B2E388
+2025-04-14 19:30:25.764 CEST [4436] LOG:  checkpoint starting: time
+2025-04-14 19:30:26.146 CEST [4436] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.329 s, sync=0.018 s, total=0.384 s; sync files=4, longest=0.013 s, average=0.005 s; distance=1 kB, estimate=4 kB; lsn=0/1B2EB18, redo lsn=0/1B2EAC0
+2025-04-14 19:35:25.154 CEST [4436] LOG:  checkpoint starting: time
+2025-04-14 19:35:25.537 CEST [4436] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.326 s, sync=0.022 s, total=0.384 s; sync files=4, longest=0.012 s, average=0.006 s; distance=1 kB, estimate=4 kB; lsn=0/1B2F2D0, redo lsn=0/1B2F278
+2025-04-15 00:20:50.177 CEST [21168] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:20:50.177 CEST [21168] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:20:50.177 CEST [21168] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:20:55.913 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:20:55.913 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:20:55.913 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:20:55.971 CEST [21168] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:20:55.971 CEST [21168] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:20:55.971 CEST [21168] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:21:01.693 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:21:01.693 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:21:01.693 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:21:14.205 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:21:14.205 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:21:14.205 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:21:23.026 CEST [21168] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:21:23.026 CEST [21168] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:21:23.026 CEST [21168] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:21:27.333 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:21:27.333 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:21:27.333 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:21:39.392 CEST [21168] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:21:39.392 CEST [21168] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:21:39.392 CEST [21168] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:21:42.414 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:21:42.414 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:21:42.414 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:23:08.244 CEST [21168] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:23:08.244 CEST [21168] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:23:08.244 CEST [21168] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:23:28.350 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:23:28.350 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:23:28.350 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:23:52.249 CEST [21168] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:23:52.249 CEST [21168] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:23:52.249 CEST [21168] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:23:58.475 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:23:58.475 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:23:58.475 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:24:02.687 CEST [23536] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 00:24:02.687 CEST [23536] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 00:24:02.687 CEST [23536] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 00:26:55.650 CEST [4436] LOG:  checkpoint starting: time
+2025-04-15 00:26:56.143 CEST [4436] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.433 s, sync=0.020 s, total=0.494 s; sync files=5, longest=0.012 s, average=0.004 s; distance=4 kB, estimate=4 kB; lsn=0/1B30628, redo lsn=0/1B305D0
+2025-04-15 00:31:55.161 CEST [4436] LOG:  checkpoint starting: time
+2025-04-15 00:31:55.318 CEST [4436] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.111 s, sync=0.009 s, total=0.157 s; sync files=2, longest=0.006 s, average=0.005 s; distance=1 kB, estimate=4 kB; lsn=0/1B30BD0, redo lsn=0/1B30B78
+2025-04-15 00:36:55.337 CEST [4436] LOG:  checkpoint starting: time
+2025-04-15 00:36:55.720 CEST [4436] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.329 s, sync=0.019 s, total=0.384 s; sync files=4, longest=0.012 s, average=0.005 s; distance=1 kB, estimate=4 kB; lsn=0/1B31390, redo lsn=0/1B31338
+2025-04-15 00:41:55.735 CEST [4436] LOG:  checkpoint starting: time
+2025-04-15 00:41:56.099 CEST [4436] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.325 s, sync=0.011 s, total=0.364 s; sync files=4, longest=0.005 s, average=0.003 s; distance=2 kB, estimate=4 kB; lsn=0/1B31C08, redo lsn=0/1B31BB0
+2025-04-15 00:46:55.121 CEST [4436] LOG:  checkpoint starting: time
+2025-04-15 00:46:55.278 CEST [4436] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.112 s, sync=0.009 s, total=0.158 s; sync files=2, longest=0.007 s, average=0.005 s; distance=3 kB, estimate=3 kB; lsn=0/1B32A10, redo lsn=0/1B329B8
+2025-04-15 00:52:07.149 CEST [23536] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-04-15 00:52:07.149 CEST [21168] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-04-15 00:56:55.311 CEST [4436] LOG:  checkpoint starting: time
+2025-04-15 00:56:55.801 CEST [4436] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.443 s, sync=0.013 s, total=0.491 s; sync files=5, longest=0.004 s, average=0.003 s; distance=4 kB, estimate=4 kB; lsn=0/1B349F0, redo lsn=0/1B33DA8

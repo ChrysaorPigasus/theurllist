@@ -1,4 +1,4 @@
-import { getListById, addUrlToList, updateUrl, deleteUrl } from '../../../utils/database';
+import { getListById, addUrlToList, updateUrl, deleteUrl, deleteList } from '../../../utils/database';
 
 export const prerender = false;
 
@@ -102,23 +102,53 @@ export async function PUT({ params, request }) {
 export async function DELETE({ params, request }) {
   try {
     const { id } = params;
-    const { urlId } = await request.json();
-
-    if (!id || !urlId) {
+    
+    // If the request has a body, it's trying to delete a URL from the list
+    let bodyText;
+    try {
+      bodyText = await request?.text();
+    } catch (e) {
+      // No body or cannot read body
+      bodyText = '';
+    }
+    
+    // If we have a body with a urlId, delete the URL from the list
+    if (bodyText && bodyText.includes('urlId')) {
+      try {
+        const { urlId } = JSON.parse(bodyText);
+        
+        if (!id || !urlId) {
+          return new Response(JSON.stringify({ 
+            error: 'List ID and URL ID are required.' 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        
+        await deleteUrl(urlId);
+        return new Response(null, { status: 204 });
+      } catch (error) {
+        console.error('Error parsing request body:', error);
+      }
+    }
+    
+    // Otherwise, delete the entire list
+    if (!id) {
       return new Response(JSON.stringify({ 
-        error: 'List ID and URL ID are required.' 
+        error: 'List ID is required.' 
       }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-
-    await deleteUrl(urlId);
+    
+    await deleteList(id);
     return new Response(null, { status: 204 });
   } catch (error) {
-    console.error('Error deleting URL:', error);
+    console.error('Error deleting list or URL:', error);
     return new Response(JSON.stringify({ 
-      error: 'Failed to delete URL. Please try again later.' 
+      error: 'Failed to delete. Please try again later.' 
     }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

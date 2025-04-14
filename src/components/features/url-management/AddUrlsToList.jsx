@@ -1,5 +1,5 @@
 // Feature: Adding URLs to a List (FR002)
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, addUrlToList } from '../../../stores/lists';
 
@@ -12,8 +12,18 @@ export default function AddUrlsToList({ listId }) {
   const { lists, activeListId } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
   
-  const activeList = lists.find(list => list.id === activeListId);
+  // Find the active list in the store
+  const numericListId = parseInt(listId, 10);
+  const activeList = lists.find(list => list.id === numericListId || list.id === activeListId);
   const urls = activeList?.urls || [];
+
+  // Clear feedback messages after 3 seconds
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   const handleAddUrl = async () => {
     if (!url.trim()) {
@@ -21,16 +31,32 @@ export default function AddUrlsToList({ listId }) {
       return;
     }
 
-    const result = await addUrlToList(listId, url);
-    if (result) {
-      setFeedback(`URL "${url}" added successfully!`);
-      setUrl('');
-      setTimeout(() => setFeedback(''), 3000);
+    // Ensure URL has http/https prefix
+    let formattedUrl = url.trim();
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}`;
+    }
+
+    try {
+      // Log for debugging
+      console.log(`Adding URL to list ${numericListId}:`, formattedUrl);
+      
+      const result = await addUrlToList(numericListId, formattedUrl);
+      
+      if (result) {
+        setFeedback(`URL "${formattedUrl}" added successfully!`);
+        setUrl('');
+      } else {
+        setFeedback('Failed to add URL. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error adding URL:', err);
+      setFeedback('Error adding URL. Please try again.');
     }
   };
 
   if (!activeList) {
-    return null;
+    return <div className="text-gray-500">Loading list...</div>;
   }
 
   return (
