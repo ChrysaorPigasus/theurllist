@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getListById } from '../../utils/database';
-import UrlList from '../../components/features/url-management/ViewUrlsInList';
+import UrlList from '../../components/features/UrlList';
 
 const { id } = Astro.params;
 let list = null;
@@ -22,7 +22,7 @@ try {
 }
 ---
 
-<Layout title="The Urlist"></Layout>
+<Layout title={list ? `${list.name} | The Urlist` : "The Urlist"}>
   <main class="min-h-screen bg-gray-50">
     {error ? (
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -30,7 +30,7 @@ try {
           <div class="flex">
             <div class="flex-shrink-0">
               <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293-1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
               </svg>
             </div>
             <div class="ml-3">

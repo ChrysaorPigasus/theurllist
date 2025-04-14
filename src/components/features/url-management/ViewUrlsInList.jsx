@@ -1,8 +1,7 @@
 // Feature: Viewing URLs in a List (FR003)
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, setActiveList, fetchListDetails } from '../../../stores/lists';
-import { addUrlToList, updateUrl, deleteUrl } from '../../../stores/lists';
+import { listStore, listUIState, addUrlToList, updateUrl, deleteUrl } from '../../../stores/lists';
 import Card from '../../ui/Card';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
@@ -11,6 +10,9 @@ import EmptyState from '../../ui/EmptyState';
 import Spinner from '../../ui/Spinner';
 
 export default function ViewUrlsInList({ listId }) {
+  // Use ref to track mounted state for async operations
+  const isMounted = useRef(true);
+  
   // State for URL list management
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('dateAdded');
@@ -19,6 +21,7 @@ export default function ViewUrlsInList({ listId }) {
   // State for URL CRUD operations
   const [newUrlData, setNewUrlData] = useState({
     url: '',
+    name: '',
     title: '',
     description: '',
     image: ''
@@ -33,49 +36,39 @@ export default function ViewUrlsInList({ listId }) {
   const { isLoading, error } = useStore(listUIState);
   
   // Find the active list and extract URLs
-  const activeList = lists.find(list => list.id === activeListId);
-  console.log('Active list ID:', activeListId);
-  console.log('Active list:', activeList);
-  console.log('Lists in store:', lists.map(l => ({ id: l.id, name: l.name, urlCount: l.urls?.length || 0 })));
+  const activeList = lists.find(list => list.id === parseInt(listId));
   
   // Ensure we have a urls array, even if empty
   const urls = activeList?.urls || [];
-  console.log('URLs for display:', urls);
 
-  // Function to reload list data
+  // Function to reload list data - we'll use a local refreshing mechanism
+  // to avoid triggering an infinite loop
   const refreshList = useCallback(() => {
-    if (listId) {
-      console.log('Refreshing list data for ID:', listId);
-      fetchListDetails(listId).catch(err => {
-        console.error("Error refreshing list:", err);
-        setFeedback('Failed to refresh URL list data.');
-      });
+    // Only dispatch events if the component is mounted
+    if (isMounted.current) {
+      // Instead of directly calling fetchListDetails, dispatch an event
+      // that the parent can listen to if needed
+      window.dispatchEvent(new CustomEvent('refresh-list-data', { 
+        detail: { listId: parseInt(listId) } 
+      }));
     }
   }, [listId]);
 
-  useEffect(() => {
-    if (listId) {
-      // Convert to number if it's a string
-      const numericId = typeof listId === 'string' ? parseInt(listId, 10) : listId;
-      console.log('Setting active list and fetching details for ID:', numericId);
-      
-      if (!isNaN(numericId)) {
-        setActiveList(numericId);
-        // Fetch the latest data for this list
-        fetchListDetails(numericId);
-      } else {
-        console.error("Invalid list ID:", listId);
-        setFeedback('Invalid list ID provided.');
-      }
-    }
-  }, [listId]);
+  // Add cleanup effect when component unmounts
+  React.useEffect(() => {
+    isMounted.current = true;
+    
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewUrlData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Add URL handler
+  // Add URL handler with improved async handling
   const handleAddUrl = async () => {
     if (!newUrlData.url.trim()) {
       setFeedback('URL cannot be empty.');
@@ -83,16 +76,26 @@ export default function ViewUrlsInList({ listId }) {
     }
 
     try {
-      await addUrlToList(activeListId, newUrlData);
-      setNewUrlData({ url: '', title: '', description: '', image: '' });
-      setFeedback('URL added successfully!');
-      setTimeout(() => setFeedback(''), 3000);
-      
-      // Refresh the list data to show the new URL
-      refreshList();
+      const result = await addUrlToList(activeListId, newUrlData);
+      // Check if component is still mounted before updating state
+      if (isMounted.current) {
+        setNewUrlData({ url: '', name: '', title: '', description: '', image: '' });
+        setFeedback('URL added successfully!');
+        setAdvancedFormVisible(false);
+        setTimeout(() => {
+          if (isMounted.current) {
+            setFeedback('');
+          }
+        }, 3000);
+        
+        // Refresh the list data to show the new URL
+        refreshList();
+      }
     } catch (err) {
-      setFeedback('Failed to add URL. Please try again.');
-      console.error('Error adding URL:', err);
+      if (isMounted.current) {
+        setFeedback('Failed to add URL. Please try again.');
+        console.error('Error adding URL:', err);
+      }
     }
   };
 
@@ -101,9 +104,11 @@ export default function ViewUrlsInList({ listId }) {
     setEditingUrl({
       id: urlItem.id,
       url: urlItem.url,
+      name: urlItem.name || '',
       title: urlItem.title || '',
       description: urlItem.description || '',
-      image: urlItem.image || ''
+      image: urlItem.image || '',
+      list_id: urlItem.list_id || urlItem.listId
     });
   };
 
@@ -112,6 +117,7 @@ export default function ViewUrlsInList({ listId }) {
     setEditingUrl(prev => ({ ...prev, [name]: value }));
   };
 
+  // Edit URL handlers with improved async handling
   const handleUpdateUrl = async () => {
     if (!editingUrl?.url.trim()) {
       setFeedback('URL cannot be empty.');
@@ -120,15 +126,24 @@ export default function ViewUrlsInList({ listId }) {
 
     try {
       await updateUrl(editingUrl.id, editingUrl);
-      setEditingUrl(null);
-      setFeedback('URL updated successfully!');
-      setTimeout(() => setFeedback(''), 3000);
-      
-      // Refresh list to show updated URL
-      refreshList();
+      // Check if component is still mounted before updating state
+      if (isMounted.current) {
+        setEditingUrl(null);
+        setFeedback('URL updated successfully!');
+        setTimeout(() => {
+          if (isMounted.current) {
+            setFeedback('');
+          }
+        }, 3000);
+        
+        // Refresh list to show updated URL
+        refreshList();
+      }
     } catch (err) {
-      setFeedback('Failed to update URL. Please try again.');
-      console.error('Error updating URL:', err);
+      if (isMounted.current) {
+        setFeedback('Failed to update URL. Please try again.');
+        console.error('Error updating URL:', err);
+      }
     }
   };
 
@@ -141,18 +156,28 @@ export default function ViewUrlsInList({ listId }) {
     setUrlToDelete(urlItem);
   };
 
+  // Delete URL handlers with improved async handling
   const handleConfirmDelete = async () => {
     try {
       await deleteUrl(urlToDelete.id);
-      setUrlToDelete(null);
-      setFeedback('URL deleted successfully!');
-      setTimeout(() => setFeedback(''), 3000);
-      
-      // Refresh to show the deletion
-      refreshList();
+      // Check if component is still mounted before updating state
+      if (isMounted.current) {
+        setUrlToDelete(null);
+        setFeedback('URL deleted successfully!');
+        setTimeout(() => {
+          if (isMounted.current) {
+            setFeedback('');
+          }
+        }, 3000);
+        
+        // Refresh to show the deletion
+        refreshList();
+      }
     } catch (err) {
-      setFeedback('Failed to delete URL. Please try again.');
-      console.error('Error deleting URL:', err);
+      if (isMounted.current) {
+        setFeedback('Failed to delete URL. Please try again.');
+        console.error('Error deleting URL:', err);
+      }
     }
   };
 
@@ -172,6 +197,7 @@ export default function ViewUrlsInList({ listId }) {
       const searchLower = search.toLowerCase();
       result = result.filter(url => 
         url.url.toLowerCase().includes(searchLower) ||
+        (url.name && url.name.toLowerCase().includes(searchLower)) ||
         (url.title && url.title.toLowerCase().includes(searchLower)) ||
         (url.description && url.description.toLowerCase().includes(searchLower))
       );
@@ -183,6 +209,9 @@ export default function ViewUrlsInList({ listId }) {
       switch (sortBy) {
         case 'url':
           comparison = a.url.localeCompare(b.url);
+          break;
+        case 'name':
+          comparison = (a.name || '').localeCompare(b.name || '');
           break;
         case 'title':
           comparison = (a.title || '').localeCompare(b.title || '');
@@ -235,9 +264,9 @@ export default function ViewUrlsInList({ listId }) {
 
   return (
     <Card 
-      title={activeList?.name || 'URL List'} 
-      description={activeList?.description}
-      className="max-w-4xl mx-auto"
+      title="URLs in List" 
+      description="View and manage the URLs in this list"
+      className="max-w-full mx-auto"
     >
       <div className="space-y-6">
         {/* Add URL section */}
@@ -295,6 +324,13 @@ export default function ViewUrlsInList({ listId }) {
             {advancedFormVisible && (
               <div className="space-y-3 pt-2">
                 <Input
+                  label="Name"
+                  name="name"
+                  placeholder="Name for this link"
+                  value={newUrlData.name}
+                  onChange={handleInputChange}
+                />
+                <Input
                   label="Title"
                   name="title"
                   placeholder="Title for this link"
@@ -344,9 +380,18 @@ export default function ViewUrlsInList({ listId }) {
           </div>
         </div>
 
+        {/* URL count display */}
+        <div className="py-2 text-gray-500 text-sm">
+          {filteredAndSortedUrls.length === 0 ? (
+            search ? "No URLs match your search" : "No URLs in this list yet"
+          ) : (
+            <>Displaying {filteredAndSortedUrls.length} URL{filteredAndSortedUrls.length !== 1 && 's'}</>
+          )}
+        </div>
+
         {/* URL list table */}
         {filteredAndSortedUrls.length > 0 ? (
-          <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+          <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
             <table className="min-w-full divide-y divide-gray-300">
               <thead className="bg-gray-50">
                 <tr>
@@ -362,6 +407,16 @@ export default function ViewUrlsInList({ listId }) {
                     <div className="group inline-flex items-center">
                       URL
                       {getSortIcon('url')}
+                    </div>
+                  </th>
+                  <th 
+                    scope="col" 
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSortChange('name')}
+                  >
+                    <div className="group inline-flex items-center">
+                      Name
+                      {getSortIcon('name')}
                     </div>
                   </th>
                   <th 
@@ -420,6 +475,9 @@ export default function ViewUrlsInList({ listId }) {
                       >
                         {urlItem.url}
                       </a>
+                    </td>
+                    <td className="px-3 py-4 text-sm text-gray-500">
+                      {urlItem.name || '-'}
                     </td>
                     <td className="px-3 py-4 text-sm text-gray-500">
                       {urlItem.title && (
@@ -525,6 +583,13 @@ export default function ViewUrlsInList({ listId }) {
               value={editingUrl.url}
               onChange={handleEditInputChange}
               placeholder="https://example.com"
+            />
+            <Input
+              label="Name"
+              name="name"
+              value={editingUrl.name}
+              onChange={handleEditInputChange}
+              placeholder="Name for this link"
             />
             <Input
               label="Title"

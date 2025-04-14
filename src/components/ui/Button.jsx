@@ -31,19 +31,15 @@ export default function Button({
   loading = false,
   type = 'button',
   icon,
+  href,
   ...props
 }) {
   const baseClasses = 'inline-flex items-center justify-center border font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed';
   const variantClasses = loading ? loadingStates[variant] : variants[variant];
   const sizeClasses = sizes[size];
   
-  return (
-    <button
-      type={type}
-      disabled={disabled || loading}
-      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
-      {...props}
-    >
+  const buttonContent = (
+    <>
       {loading ? (
         <svg 
           className="animate-spin -ml-1 mr-2 h-4 w-4" 
@@ -69,6 +65,29 @@ export default function Button({
         <span className="mr-2">{icon}</span>
       ) : null}
       {children}
+    </>
+  );
+  
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+        {...props}
+      >
+        {buttonContent}
+      </a>
+    );
+  }
+  
+  return (
+    <button
+      type={type}
+      disabled={disabled || loading}
+      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+      {...props}
+    >
+      {buttonContent}
     </button>
   );
 }

@@ -7,7 +7,8 @@ export {
   deleteList,
   setActiveList,
   getActiveList,
-  fetchLists
+  fetchLists,
+  fetchListDetails
 } from './listStore';
 
 // Export URL management functions

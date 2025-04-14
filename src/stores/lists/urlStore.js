@@ -1,5 +1,4 @@
 import { map } from 'nanostores';
-import { addUrlToList as dbAddUrlToList, updateUrl as dbUpdateUrl, deleteUrl as dbDeleteUrl } from '../../utils/database';
 import { listUIState, getActiveList } from './listStore';
 
 // URL-specific actions
@@ -8,7 +7,24 @@ export async function addUrlToList(listId, url) {
   listUIState.setKey('error', null);
   
   try {
-    const updatedUrl = await dbAddUrlToList(listId, url);
+    // Use API endpoint instead of direct database access
+    const response = await fetch('/api/links', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...url,
+        list_id: listId
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add URL');
+    }
+    
+    const updatedUrl = await response.json();
     const activeList = getActiveList();
     if (activeList) {
       activeList.urls = [...(activeList.urls || []), updatedUrl];
@@ -28,7 +44,24 @@ export async function updateUrl(urlId, newUrl) {
   listUIState.setKey('error', null);
   
   try {
-    const updatedUrl = await dbUpdateUrl(urlId, newUrl);
+    // Use API endpoint instead of direct database access
+    const response = await fetch('/api/links', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: urlId,
+        ...newUrl
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update URL');
+    }
+    
+    const updatedUrl = await response.json();
     const activeList = getActiveList();
     if (activeList) {
       activeList.urls = activeList.urls.map(url => 
@@ -50,7 +83,16 @@ export async function deleteUrl(urlId) {
   listUIState.setKey('error', null);
   
   try {
-    await dbDeleteUrl(urlId);
+    // Use API endpoint instead of direct database access
+    const response = await fetch(`/api/links?id=${urlId}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete URL');
+    }
+    
     const activeList = getActiveList();
     if (activeList) {
       activeList.urls = activeList.urls.filter(url => url.id !== urlId);

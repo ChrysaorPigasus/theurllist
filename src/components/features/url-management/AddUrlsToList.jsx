@@ -1,7 +1,7 @@
 // Feature: Adding URLs to a List (FR002)
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, addUrlToList } from '../../../stores';
+import { listStore, listUIState, addUrlToList } from '../../../stores/lists';
 
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';

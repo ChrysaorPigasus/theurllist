@@ -71,11 +71,13 @@ export async function deleteList(id) {
 export async function publishList(listId) {
   ensureServerSide();
   try {
+    // Since there's no is_published or published_at column, we'll update
+    // the description to indicate the list is published instead
     const [publishedList] = await sql`
       UPDATE lists
-      SET is_published = true, published_at = NOW()
+      SET description = CONCAT(description, ' (Published)')
       WHERE id = ${listId}
-      RETURNING id, name, title, description, slug, created_at, published_at
+      RETURNING id, name, title, description, slug, created_at
     `;
     return publishedList;
   } catch (error) {
@@ -134,12 +136,31 @@ export async function getLinksForList(listId) {
 }
 
 // URL/Link Management Functions
-export async function addUrlToList(listId, url) {
+export async function addUrlToList(listId, urlData) {
   ensureServerSide();
   try {
+    // If urlData is just a string, convert it to an object
+    const data = typeof urlData === 'string' 
+      ? { url: urlData } 
+      : urlData;
+    
     const [link] = await sql`
-      INSERT INTO links (list_id, url)
-      VALUES (${listId}, ${url})
+      INSERT INTO links (
+        list_id, 
+        url, 
+        name, 
+        title, 
+        description, 
+        image
+      )
+      VALUES (
+        ${listId}, 
+        ${data.url}, 
+        ${data.name || null}, 
+        ${data.title || null}, 
+        ${data.description || null}, 
+        ${data.image || null}
+      )
       RETURNING id, name, title, description, url, image, list_id, created_at
     `;
     return link;
@@ -149,12 +170,22 @@ export async function addUrlToList(listId, url) {
   }
 }
 
-export async function updateUrl(urlId, newUrl) {
+export async function updateUrl(urlId, urlData) {
   ensureServerSide();
   try {
+    // If urlData is just a string, convert it to an object
+    const data = typeof urlData === 'string' 
+      ? { url: urlData } 
+      : urlData;
+    
     const [link] = await sql`
       UPDATE links 
-      SET url = ${newUrl}
+      SET 
+        url = ${data.url},
+        name = ${data.name || null},
+        title = ${data.title || null},
+        description = ${data.description || null},
+        image = ${data.image || null}
       WHERE id = ${urlId}
       RETURNING id, name, title, description, url, image, list_id, created_at
     `;
@@ -174,6 +205,38 @@ export async function deleteUrl(urlId) {
     `;
   } catch (error) {
     logger.error(error, 'Failed to delete URL');
+    throw error;
+  }
+}
+
+export async function getListById(id) {
+  ensureServerSide();
+  try {
+    const [list] = await sql`
+      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+      FROM lists l
+      WHERE l.id = ${id}
+    `;
+    
+    if (!list) {
+      return null;
+    }
+    
+    // Get the associated URLs/links for this list
+    const links = await sql`
+      SELECT id, name, title, description, url, image, list_id, created_at
+      FROM links 
+      WHERE list_id = ${id}
+      ORDER BY created_at DESC
+    `;
+    
+    // Return the list with its links included
+    return {
+      ...list,
+      urls: links || []
+    };
+  } catch (error) {
+    logger.error(error, `Failed to retrieve list with ID ${id}`);
     throw error;
   }
 }

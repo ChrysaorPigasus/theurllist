@@ -1,0 +1,168 @@
+2025-04-14 17:36:01.981 CEST [17080] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-14 17:36:01.992 CEST [17080] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-14 17:36:01.992 CEST [17080] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-14 17:36:02.211 CEST [17580] LOG:  database system was interrupted; last known up at 2025-04-13 23:24:03 CEST
+2025-04-14 17:36:03.436 CEST [17580] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-14 17:36:03.451 CEST [17580] LOG:  redo starts at 0/1B2BC30
+2025-04-14 17:36:03.452 CEST [17580] LOG:  invalid record length at 0/1B2BD38: expected at least 24, got 0
+2025-04-14 17:36:03.452 CEST [17580] LOG:  redo done at 0/1B2BD00 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-14 17:36:03.465 CEST [19380] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-14 17:36:03.508 CEST [19380] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.010 s, sync=0.007 s, total=0.048 s; sync files=2, longest=0.004 s, average=0.004 s; distance=0 kB, estimate=0 kB; lsn=0/1B2BD38, redo lsn=0/1B2BD38
+2025-04-14 17:36:03.698 CEST [17080] LOG:  database system is ready to accept connections
+2025-04-14 17:37:23.854 CEST [33548] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-04-14 18:07:40.526 CEST [16844] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-04-14 18:08:36.737 CEST [17080] LOG:  server process (PID 7164) was terminated by exception 0xC000013A
+2025-04-14 18:08:36.737 CEST [17080] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-14 18:08:36.737 CEST [17080] LOG:  terminating any other active server processes
+2025-04-14 18:08:36.770 CEST [17080] LOG:  all server processes terminated; reinitializing
+2025-04-14 18:08:36.967 CEST [17080] LOG:  startup process (PID 10900) was terminated by exception 0xC0000142
+2025-04-14 18:08:36.967 CEST [17080] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-14 18:08:36.967 CEST [17080] LOG:  aborting startup due to startup process failure
+2025-04-14 18:08:36.969 CEST [17080] LOG:  database system is shut down
+2025-04-14 18:10:50.609 CEST [22484] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-14 18:10:50.627 CEST [22484] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-14 18:10:50.627 CEST [22484] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-14 18:10:50.791 CEST [20072] LOG:  database system was interrupted; last known up at 2025-04-14 17:36:03 CEST
+2025-04-14 18:10:52.008 CEST [20072] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-14 18:10:52.017 CEST [20072] LOG:  redo starts at 0/1B2BDB0
+2025-04-14 18:10:52.017 CEST [20072] LOG:  invalid record length at 0/1B2BDE8: expected at least 24, got 0
+2025-04-14 18:10:52.017 CEST [20072] LOG:  redo done at 0/1B2BDB0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-14 18:10:52.028 CEST [4436] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-14 18:10:52.057 CEST [4436] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.006 s, total=0.034 s; sync files=2, longest=0.004 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B2BDE8, redo lsn=0/1B2BDE8
+2025-04-14 18:10:52.164 CEST [22484] LOG:  database system is ready to accept connections
+2025-04-14 18:26:34.368 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:26:34.368 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:26:59.368 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:26:59.368 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:28:46.698 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:28:46.698 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:28:49.826 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:28:49.826 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:29:00.152 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:29:00.152 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:29:16.148 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:29:16.148 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:29:24.993 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:29:24.993 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:29:32.692 CEST [32348] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:29:32.692 CEST [32348] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:30:14.515 CEST [32348] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2025-04-14 18:30:34.758 CEST [16552] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:30:34.758 CEST [16552] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:30:46.147 CEST [16552] ERROR:  column l.is_published does not exist at character 75
+2025-04-14 18:30:46.147 CEST [16552] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.is_published
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 18:30:52.083 CEST [4436] LOG:  checkpoint starting: time
+2025-04-14 18:30:52.468 CEST [4436] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.327 s, sync=0.022 s, total=0.386 s; sync files=4, longest=0.013 s, average=0.006 s; distance=1 kB, estimate=1 kB; lsn=0/1B2C450, redo lsn=0/1B2C3F8
+2025-04-14 19:17:30.035 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:30.035 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:30.035 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:30.213 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:30.213 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:30.213 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:30.371 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:30.371 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:30.371 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:30.561 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:30.561 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:30.561 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:30.692 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:30.692 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:30.692 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:34.003 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:34.003 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:34.003 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:34.057 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:34.057 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:34.057 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:54.892 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:54.892 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:54.892 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:17:54.944 CEST [28148] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:17:54.944 CEST [28148] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:17:54.944 CEST [28148] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-14 19:18:01.113 CEST [30948] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-14 19:18:01.113 CEST [30948] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-14 19:18:01.113 CEST [30948] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    

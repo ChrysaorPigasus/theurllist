@@ -6,6 +6,20 @@ import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import Card from '../../ui/Card';
 
+// Function to create a shareable URL for a list
+function getShareableUrl(list) {
+  if (!list) return '';
+  
+  // Use the slug if available, otherwise use the ID
+  const identifier = list.slug || list.id;
+  
+  // Create the full URL using window.location.origin if available (client-side)
+  // or a fallback domain for server-side rendering
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  
+  return `${baseUrl}/list/${identifier}`;
+}
+
 export default function ShareList({ listId }) {
   const [feedback, setFeedback] = useState('');
   const { lists, activeListId } = useStore(listStore);
