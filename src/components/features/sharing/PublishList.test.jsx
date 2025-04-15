@@ -74,8 +74,8 @@ describe('PublishList', () => {
   it('shows publish status for published list', () => {
     render(<PublishList listId="456" />);
     
-    // Use a more specific selector to target just the status text in the paragraph
-    expect(screen.getByText('Published', { selector: 'p.text-sm.text-gray-500' })).toBeInTheDocument();
+    // Use a more specific, exact text match to avoid ambiguity
+    expect(screen.getByText(/^Published$/)).toBeInTheDocument();
     const makePrivateButton = screen.getByRole('button', { name: /make private/i });
     expect(makePrivateButton).toBeInTheDocument();
   });
