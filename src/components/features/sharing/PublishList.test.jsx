@@ -12,13 +12,14 @@ vi.mock('../../../stores/lists', () => {
   return {
     listStore: {},
     listUIState: {},
-    publishList: vi.fn().mockResolvedValue(true)
+    publishList: vi.fn().mockResolvedValue(true),
+    unpublishList: vi.fn().mockResolvedValue(true)
   };
 });
 
 // Import after mocking
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, publishList } from '../../../stores/lists';
+import { listStore, listUIState, publishList, unpublishList } from '../../../stores/lists';
 import PublishList from './PublishList';
 
 // Create mock values for the tests
@@ -27,16 +28,15 @@ const mockLists = [
     id: '123',
     name: 'Test List',
     urls: [],
-    isPublished: false,
+    published: false,
     publishedAt: null
   },
   {
     id: '456',
     name: 'Published List',
     urls: [],
-    isPublished: true,
-    publishedAt: '2023-01-01T12:00:00Z',
-    description: 'This is a published list (Published)'
+    published: true,
+    publishedAt: '2023-01-01T12:00:00Z'
   }
 ];
 
@@ -76,9 +76,8 @@ describe('PublishList', () => {
     
     // Use a more specific selector to target just the status text in the paragraph
     expect(screen.getByText('Published', { selector: 'p.text-sm.text-gray-500' })).toBeInTheDocument();
-    const publishedButton = screen.getByRole('button', { name: /published/i });
-    expect(publishedButton).toBeInTheDocument();
-    expect(publishedButton).toBeDisabled();
+    const makePrivateButton = screen.getByRole('button', { name: /make private/i });
+    expect(makePrivateButton).toBeInTheDocument();
   });
   
   it('publishes the list when publish button is clicked', () => {
@@ -87,6 +86,14 @@ describe('PublishList', () => {
     fireEvent.click(screen.getByRole('button', { name: /publish list/i }));
     
     expect(publishList).toHaveBeenCalledWith('123');
+  });
+  
+  it('unpublishes the list when make private button is clicked', () => {
+    render(<PublishList listId="456" />);
+    
+    fireEvent.click(screen.getByRole('button', { name: /make private/i }));
+    
+    expect(unpublishList).toHaveBeenCalledWith('456');
   });
   
   it('shows loading state when publishing', () => {

@@ -1,7 +1,7 @@
 // Feature: Publishing a List (FR008)
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, publishList } from '../../../stores/lists';
+import { listStore, listUIState, publishList, unpublishList } from '../../../stores/lists';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 
@@ -9,18 +9,59 @@ export default function PublishList({ listId }) {
   const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
+  const isMounted = useRef(true);
+  
+  useEffect(() => {
+    // Set mounted flag
+    isMounted.current = true;
+    
+    // Clean up when unmounting
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
   
   const currentList = lists.find(list => list.id === listId);
-  // Check if list is published by looking for "(Published)" in the description
-  const isPublished = currentList?.description?.includes('(Published)');
+  // Check if list is published using the published column
+  const isPublished = currentList?.published === true;
 
   const handlePublish = async () => {
     if (!currentList) return;
     
     const success = await publishList(listId);
-    if (success) {
+    if (success && isMounted.current) {
       setFeedback('List published successfully!');
-      setTimeout(() => setFeedback(''), 3000);
+      
+      // Dispatch refresh event to update the UI
+      window.dispatchEvent(new CustomEvent('refresh-list-data', { 
+        detail: { listId: parseInt(listId) } 
+      }));
+      
+      setTimeout(() => {
+        if (isMounted.current) {
+          setFeedback('');
+        }
+      }, 3000);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!currentList) return;
+    
+    const success = await unpublishList(listId);
+    if (success && isMounted.current) {
+      setFeedback('List is now private.');
+      
+      // Dispatch refresh event to update the UI
+      window.dispatchEvent(new CustomEvent('refresh-list-data', { 
+        detail: { listId: parseInt(listId) } 
+      }));
+      
+      setTimeout(() => {
+        if (isMounted.current) {
+          setFeedback('');
+        }
+      }, 3000);
     }
   };
 
@@ -31,7 +72,7 @@ export default function PublishList({ listId }) {
   return (
     <Card
       title="Publish List"
-      description="Make your list publicly accessible"
+      description="Control the public visibility of your list"
       className="max-w-2xl mx-auto"
     >
       <div className="space-y-4">
@@ -43,20 +84,37 @@ export default function PublishList({ listId }) {
           </p>
         </div>
 
-        <Button
-          onClick={handlePublish}
-          variant="primary"
-          size="md"
-          loading={isLoading}
-          disabled={isPublished}
-          icon={
-            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          }
-        >
-          {isPublished ? 'Published' : 'Publish List'}
-        </Button>
+        {isPublished ? (
+          <Button
+            onClick={handleUnpublish}
+            variant="secondary"
+            size="md"
+            loading={isLoading}
+            disabled={isLoading}
+            icon={
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            }
+          >
+            Make Private
+          </Button>
+        ) : (
+          <Button
+            onClick={handlePublish}
+            variant="primary"
+            size="md"
+            loading={isLoading}
+            disabled={isLoading}
+            icon={
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            }
+          >
+            Publish List
+          </Button>
+        )}
 
         {feedback && !error && (
           <p className="text-sm text-green-600">{feedback}</p>

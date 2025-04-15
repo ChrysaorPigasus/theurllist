@@ -11,7 +11,9 @@ CREATE TABLE lists (
     title VARCHAR(255),
     description TEXT,
     slug TEXT,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    published BOOLEAN NOT NULL DEFAULT FALSE,
+    published_at TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- Create links table

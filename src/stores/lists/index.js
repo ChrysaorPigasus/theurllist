@@ -22,6 +22,7 @@ export {
 export {
   updateCustomUrl,
   publishList,
+  unpublishList,
   getShareableUrl,
   shareList
 } from './sharingStore';

@@ -1,4 +1,4 @@
-import { publishList, getListById } from '../../../../utils/database';
+import { unpublishList, getListById } from '../../../../utils/database';
 import { logger, initialize } from '../../../../utils/db-client';
 
 export const prerender = false;
@@ -28,23 +28,17 @@ export async function POST({ params }) {
       });
     }
 
-    // Publish the list
-    const publishedList = await publishList(id);
+    // Unpublish the list
+    const unpublishedList = await unpublishList(id);
     
-    // Build the response with the shareUrl
-    const response = {
-      ...publishedList,
-      shareUrl: `${process.env.SITE_URL || 'http://localhost:3000'}/list/${publishedList.slug || publishedList.id}`
-    };
-
-    return new Response(JSON.stringify(response), { 
+    return new Response(JSON.stringify(unpublishedList), { 
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    logger.error(error, 'Error publishing list');
+    logger.error(error, 'Error unpublishing list');
     return new Response(JSON.stringify({ 
-      error: 'Failed to publish list. Please try again later.' 
+      error: 'Failed to unpublish list. Please try again later.' 
     }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

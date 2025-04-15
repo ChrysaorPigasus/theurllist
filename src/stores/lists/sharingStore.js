@@ -75,6 +75,33 @@ export async function publishList(listId) {
   }
 }
 
+// Unpublish a list to make it private again
+export async function unpublishList(listId) {
+  sharingUIState.setKey('isLoading', true);
+  sharingUIState.setKey('error', null);
+  
+  try {
+    const response = await fetch(`/api/lists/${listId}/unpublish`, {
+      method: 'POST'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Unpublishing failed');
+    }
+    
+    const data = await response.json();
+    sharingUIState.setKey('isPublished', false);
+    sharingUIState.setKey('shareUrl', null);
+    return data;
+  } catch (err) {
+    console.error('Failed to unpublish list:', err);
+    sharingUIState.setKey('error', 'Failed to make the list private. Please try again.');
+    return null;
+  } finally {
+    sharingUIState.setKey('isLoading', false);
+  }
+}
+
 // Share a list with others
 export async function shareList(customUrl) {
   sharingUIState.setKey('isLoading', true);

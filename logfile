@@ -381,3 +381,122 @@
 2025-04-15 19:45:02.751 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.111 s, sync=0.007 s, total=0.153 s; sync files=2, longest=0.005 s, average=0.004 s; distance=1 kB, estimate=4 kB; lsn=0/1B381E8, redo lsn=0/1B38190
 2025-04-15 19:50:02.758 CEST [15432] LOG:  checkpoint starting: time
 2025-04-15 19:50:02.889 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.113 s, sync=0.006 s, total=0.132 s; sync files=2, longest=0.004 s, average=0.003 s; distance=1 kB, estimate=4 kB; lsn=0/1B38858, redo lsn=0/1B38800
+2025-04-15 20:35:03.426 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 20:35:03.922 CEST [15432] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.437 s, sync=0.024 s, total=0.497 s; sync files=5, longest=0.014 s, average=0.005 s; distance=25 kB, estimate=25 kB; lsn=0/1B3EF90, redo lsn=0/1B3EF00
+2025-04-15 20:40:04.019 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 20:40:04.153 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.102 s, sync=0.006 s, total=0.134 s; sync files=2, longest=0.005 s, average=0.003 s; distance=2 kB, estimate=23 kB; lsn=0/1B3F7E0, redo lsn=0/1B3F788
+2025-04-15 20:50:04.242 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 20:50:04.377 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.104 s, sync=0.006 s, total=0.135 s; sync files=2, longest=0.005 s, average=0.003 s; distance=2 kB, estimate=21 kB; lsn=0/1B40230, redo lsn=0/1B401D8
+2025-04-15 20:51:00.509 CEST [5048] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:51:00.509 CEST [5048] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:51:00.509 CEST [5048] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:51:34.443 CEST [22780] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:51:34.443 CEST [22780] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:51:34.443 CEST [22780] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:51:55.365 CEST [5048] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:51:55.365 CEST [5048] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:51:55.365 CEST [5048] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:54:22.147 CEST [22780] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:54:22.147 CEST [22780] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:54:22.147 CEST [22780] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:58:22.113 CEST [5048] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:58:22.113 CEST [5048] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:58:22.113 CEST [5048] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:58:55.061 CEST [22780] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:58:55.061 CEST [22780] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:58:55.061 CEST [22780] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:59:07.718 CEST [5048] ERROR:  column l.published_at does not exist at character 88
+2025-04-15 20:59:07.718 CEST [5048] HINT:  Perhaps you meant to reference the column "l.published".
+2025-04-15 20:59:07.718 CEST [5048] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-15 20:59:12.000 CEST [22780] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 20:59:12.000 CEST [22780] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 20:59:12.000 CEST [22780] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 20:59:15.524 CEST [5048] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 20:59:15.524 CEST [5048] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 20:59:15.524 CEST [5048] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 21:01:08.045 CEST [22780] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 21:01:08.045 CEST [22780] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 21:01:08.045 CEST [22780] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 21:01:43.127 CEST [5048] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 21:01:43.127 CEST [5048] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 21:01:43.127 CEST [5048] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 21:02:18.996 CEST [22780] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 21:02:18.996 CEST [22780] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 21:02:18.996 CEST [22780] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 21:02:46.770 CEST [5048] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 21:02:46.770 CEST [5048] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 21:02:46.770 CEST [5048] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 21:02:53.365 CEST [22780] ERROR:  column "published_at" does not exist at character 74
+2025-04-15 21:02:53.365 CEST [22780] HINT:  Perhaps you meant to reference the column "lists.published".
+2025-04-15 21:02:53.365 CEST [22780] STATEMENT:  
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-15 21:19:18.564 CEST [14592] ERROR:  relation "lists" does not exist
+2025-04-15 21:19:18.564 CEST [14592] STATEMENT:  CREATE INDEX idx_lists_slug ON lists(slug)
+2025-04-15 21:20:04.525 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 21:20:06.019 CEST [15432] LOG:  checkpoint complete: wrote 14 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.438 s, sync=0.023 s, total=1.495 s; sync files=9, longest=0.004 s, average=0.003 s; distance=75 kB, estimate=75 kB; lsn=0/1B59970, redo lsn=0/1B531A8
+2025-04-15 21:25:04.058 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 21:25:05.324 CEST [15432] LOG:  checkpoint complete: wrote 12 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.198 s, sync=0.031 s, total=1.266 s; sync files=9, longest=0.011 s, average=0.004 s; distance=28 kB, estimate=71 kB; lsn=0/1B5A4D8, redo lsn=0/1B5A480
+2025-04-15 21:30:04.356 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 21:30:04.513 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.119 s, sync=0.010 s, total=0.157 s; sync files=2, longest=0.007 s, average=0.005 s; distance=3 kB, estimate=64 kB; lsn=0/1B5B148, redo lsn=0/1B5B0F0
+2025-04-15 21:32:26.642 CEST [5048] ERROR:  invalid input syntax for type integer: "NaN"
+2025-04-15 21:32:26.642 CEST [5048] CONTEXT:  unnamed portal parameter $1 = '...'
+2025-04-15 21:32:26.642 CEST [5048] STATEMENT:  
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    

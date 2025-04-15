@@ -11,7 +11,7 @@ export async function getLists() {
   ensureServerSide();
   try {
     const lists = await sql`
-      SELECT id, name, title, description, slug, created_at
+      SELECT id, name, title, description, slug, created_at, published, published_at
       FROM lists 
       ORDER BY created_at DESC
     `;
@@ -26,9 +26,9 @@ export async function createList({ name, title, description, slug }) {
   ensureServerSide();
   try {
     const [list] = await sql`
-      INSERT INTO lists (name, title, description, slug, created_at)
-      VALUES (${name}, ${title}, ${description}, ${slug}, NOW())
-      RETURNING id, name, title, description, slug, created_at
+      INSERT INTO lists (name, title, description, slug, created_at, published, published_at)
+      VALUES (${name}, ${title}, ${description}, ${slug}, NOW(), false, NULL)
+      RETURNING id, name, title, description, slug, created_at, published, published_at
     `;
     return list;
   } catch (error) {
@@ -48,7 +48,7 @@ export async function updateList(id, { name, title, description, slug }) {
         description = COALESCE(${description}, description),
         slug = COALESCE(${slug}, slug)
       WHERE id = ${id}
-      RETURNING id, name, title, description, slug, created_at
+      RETURNING id, name, title, description, slug, created_at, published, published_at
     `;
     return list;
   } catch (error) {
@@ -71,17 +71,33 @@ export async function deleteList(id) {
 export async function publishList(listId) {
   ensureServerSide();
   try {
-    // Since there's no is_published or published_at column, we'll update
-    // the description to indicate the list is published instead
+    // Update the published column and set published_at timestamp
     const [publishedList] = await sql`
       UPDATE lists
-      SET description = CONCAT(description, ' (Published)')
+      SET published = true, published_at = NOW()
       WHERE id = ${listId}
-      RETURNING id, name, title, description, slug, created_at
+      RETURNING id, name, title, description, slug, created_at, published, published_at
     `;
     return publishedList;
   } catch (error) {
     logger.error(error, 'Failed to publish list');
+    throw error;
+  }
+}
+
+// Unpublish List Function - new function to make a list private again
+export async function unpublishList(listId) {
+  ensureServerSide();
+  try {
+    const [unpublishedList] = await sql`
+      UPDATE lists
+      SET published = false, published_at = NULL
+      WHERE id = ${listId}
+      RETURNING id, name, title, description, slug, created_at, published, published_at
+    `;
+    return unpublishedList;
+  } catch (error) {
+    logger.error(error, 'Failed to unpublish list');
     throw error;
   }
 }
@@ -94,7 +110,7 @@ export async function updateCustomUrl(listId, customUrl) {
       UPDATE lists
       SET slug = ${customUrl}
       WHERE id = ${listId}
-      RETURNING id, name, title, description, slug, created_at
+      RETURNING id, name, title, description, slug, created_at, published, published_at
     `;
     return updatedList;
   } catch (error) {
@@ -213,7 +229,7 @@ export async function getListById(id) {
   ensureServerSide();
   try {
     const [list] = await sql`
-      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at
+      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
       FROM lists l
       WHERE l.id = ${id}
     `;

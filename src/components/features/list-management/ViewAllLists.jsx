@@ -76,6 +76,9 @@ export default function ViewAllLists() {
                         <span className="text-gray-400">/{list.slug}</span>
                       </>
                     )}
+                    <span>
+                      Exposed: {new Boolean(list.published).toString()}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
