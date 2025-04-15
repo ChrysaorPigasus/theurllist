@@ -15,6 +15,10 @@ export default defineConfig({
   server: {
     port: 3000
   },
+  // Add this configuration to disable dev toolbar and source file attributes
+  devToolbar: {
+    enabled: process.env.NODE_ENV !== 'production'
+  },
   vite: {
     build: {
       sourcemap: 'hidden',

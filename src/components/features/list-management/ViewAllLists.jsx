@@ -1,5 +1,5 @@
 // Feature: View All URL Lists
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, fetchLists } from '../../../stores/lists';
 import Card from '../../ui/Card';
@@ -7,6 +7,7 @@ import Button from '../../ui/Button';
 import EmptyState from '../../ui/EmptyState';
 import Spinner from '../../ui/Spinner';
 import DeleteList from './DeleteList';
+import UpdateList from './UpdateList';
 
 // Icons component for better organization
 const ListIcon = () => (
@@ -18,10 +19,20 @@ const ListIcon = () => (
 export default function ViewAllLists() {
   const { lists } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
+  const [editingListId, setEditingListId] = useState(null);
 
   useEffect(() => {
     fetchLists().catch(console.error);
   }, []);
+
+  const handleEditClick = (listId) => {
+    setEditingListId(listId);
+  };
+
+  const handleUpdateSuccess = (updatedList) => {
+    // Refresh the lists after successful update
+    fetchLists().catch(console.error);
+  };
 
   if (isLoading) {
     return (
@@ -95,6 +106,18 @@ export default function ViewAllLists() {
                   >
                     View
                   </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleEditClick(list.id)}
+                    icon={
+                      <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    }
+                  >
+                    Edit
+                  </Button>
                   <DeleteList listId={list.id} />
                 </div>
               </div>
@@ -117,6 +140,14 @@ export default function ViewAllLists() {
           </div>
         )}
       </div>
+
+      {/* Edit List Modal */}
+      <UpdateList
+        listId={editingListId}
+        isOpen={!!editingListId}
+        onClose={() => setEditingListId(null)}
+        onSuccess={handleUpdateSuccess}
+      />
     </Card>
   );
 }

@@ -40,19 +40,56 @@ export async function createList({ name, title, description, slug }) {
 export async function updateList(id, { name, title, description, slug }) {
   ensureServerSide();
   try {
-    const [list] = await sql`
-      UPDATE lists 
-      SET 
-        name = COALESCE(${name}, name),
-        title = COALESCE(${title}, title),
-        description = COALESCE(${description}, description),
-        slug = COALESCE(${slug}, slug)
-      WHERE id = ${id}
+    // Validate id is a number
+    const numericId = Number(id);
+    if (isNaN(numericId)) {
+      logger.error(`Invalid list ID: ${id}`);
+      return null;
+    }
+    
+    // Build the update query dynamically based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = $1');
+      updateValues.push(name);
+    }
+    
+    if (title !== undefined) {
+      updateFields.push(`title = $${updateValues.length + 1}`);
+      updateValues.push(title);
+    }
+    
+    if (description !== undefined) {
+      updateFields.push(`description = $${updateValues.length + 1}`);
+      updateValues.push(description);
+    }
+    
+    if (slug !== undefined) {
+      updateFields.push(`slug = $${updateValues.length + 1}`);
+      updateValues.push(slug);
+    }
+    
+    // If no fields to update, return the existing list
+    if (updateFields.length === 0) {
+      return await getListById(numericId);
+    }
+    
+    updateValues.push(numericId); // Add ID as the last parameter
+    
+    const query = `
+      UPDATE lists
+      SET ${updateFields.join(', ')}
+      WHERE id = $${updateValues.length}
       RETURNING id, name, title, description, slug, created_at, published, published_at
     `;
-    return list;
+    
+    const [updatedList] = await sql.unsafe(query, updateValues);
+    
+    return updatedList;
   } catch (error) {
-    logger.error(error, 'Failed to update list');
+    logger.error(error, `Failed to update list with ID ${id}`);
     throw error;
   }
 }

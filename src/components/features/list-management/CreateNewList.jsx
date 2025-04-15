@@ -1,27 +1,49 @@
 // Feature: Create New URL List (FR001)
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, createList } from '../../../stores/lists';
+import { generateSlug } from '../../../utils/urlGeneration';
 import Card from '../../ui/Card';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 
 export default function CreateNewList() {
-  const [listName, setListName] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    title: '',
+    description: '',
+    slug: ''
+  });
   const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
 
+  // Auto-generate slug when title changes
+  useEffect(() => {
+    if (formData.title) {
+      const generatedSlug = generateSlug(formData.title);
+      setFormData(prev => ({ ...prev, slug: generatedSlug }));
+    }
+  }, [formData.title]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear feedback when user starts typing again
+    if (feedback) setFeedback('');
+  };
+
   const handleCreateList = async () => {
-    if (!listName.trim()) {
+    if (!formData.name.trim()) {
       setFeedback('List name cannot be empty.');
       return;
     }
 
-    const newList = await createList(listName);
+    const newList = await createList(formData);
     if (newList) {
-      setFeedback(`List "${listName}" created successfully!`);
-      setListName('');
+      setFeedback(`List "${formData.name}" created successfully!`);
+      setFormData({ name: '', title: '', description: '', slug: '' });
       setTimeout(() => setFeedback(''), 3000);
     }
   };
@@ -35,21 +57,77 @@ export default function CreateNewList() {
       <div className="space-y-4">
         <div>
           <Input
-            id="listName"
+            id="name"
+            name="name"
             label="List Name"
             type="text"
             placeholder="Enter list name"
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
+            value={formData.name}
+            onChange={handleInputChange}
             disabled={isLoading}
             error={feedback.includes('empty') ? feedback : undefined}
             success={feedback.includes('successfully') ? feedback : undefined}
+            required
           />
+        </div>
+
+        <div>
+          <Input
+            id="title"
+            name="title"
+            label="Title (optional)"
+            type="text"
+            placeholder="Enter a descriptive title (max 100 chars)"
+            value={formData.title}
+            onChange={handleInputChange}
+            disabled={isLoading}
+            maxLength={100}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            {formData.title ? `${formData.title.length}/100 characters` : ''}
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            Description (optional)
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={3}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Enter a description for this list"
+            value={formData.description}
+            onChange={handleInputChange}
+            disabled={isLoading}
+            maxLength={500}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            {formData.description ? `${formData.description.length}/500 characters` : ''}
+          </p>
+        </div>
+
+        <div>
+          <Input
+            id="slug"
+            name="slug"
+            label="Custom URL (auto-generated from title)"
+            type="text"
+            placeholder="custom-url-slug"
+            value={formData.slug}
+            onChange={handleInputChange}
+            disabled={isLoading}
+            maxLength={60}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            This will be used in your shareable URL: /list/{formData.slug || 'custom-url'}
+          </p>
         </div>
 
         <Button
           onClick={handleCreateList}
-          disabled={isLoading || !listName.trim()}
+          disabled={isLoading || !formData.name.trim()}
           loading={isLoading}
           variant="primary"
           size="md"

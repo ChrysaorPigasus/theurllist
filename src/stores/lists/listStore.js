@@ -64,17 +64,22 @@ export async function fetchLists() {
 }
 
 // Create a new list
-export async function createList(name) {
+export async function createList(listData) {
   listUIState.setKey('isLoading', true);
   listUIState.setKey('error', null);
 
   try {
+    // Handle both simple string input and full object
+    const payload = typeof listData === 'string' 
+      ? { name: listData } 
+      : listData;
+
     const response = await fetch('/api/lists', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ name })
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {

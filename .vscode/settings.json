@@ -1,0 +1,7 @@
+
+   {
+     "workbench.editor.revealIfOpen": true,
+     "comments.openView": "never",
+     "javascript.suggest.paths.enabled": false,
+     "typescript.suggest.paths.enabled": false
+   }

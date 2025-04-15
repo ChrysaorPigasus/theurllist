@@ -22,6 +22,33 @@ export function generateUrlSlug(listName = '') {
 }
 
 /**
+ * Generates a URL-friendly slug from a string
+ * @param {string} text - The text to convert to a slug
+ * @param {number} maxLength - Maximum length of the slug (default: 60)
+ * @return {string} The generated slug
+ */
+export function generateSlug(text, maxLength = 60) {
+  if (!text) return '';
+  
+  // Convert to lowercase, remove special chars, replace spaces with hyphens
+  const slug = text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+    .replace(/-+/g, '-');     // Replace multiple hyphens with single hyphen
+  
+  // Truncate to maxLength, but don't cut in the middle of a word
+  if (slug.length <= maxLength) return slug;
+  
+  // Find the last hyphen before maxLength
+  const truncated = slug.substring(0, maxLength);
+  const lastHyphen = truncated.lastIndexOf('-');
+  
+  return lastHyphen > 0 ? truncated.substring(0, lastHyphen) : truncated;
+}
+
+/**
  * Validate a custom URL
  * @param {string} url - The URL to validate
  * @returns {string|null} Error message if invalid, null if valid
