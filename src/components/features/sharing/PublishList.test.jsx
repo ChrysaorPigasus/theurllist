@@ -35,7 +35,8 @@ const mockLists = [
     name: 'Published List',
     urls: [],
     isPublished: true,
-    publishedAt: '2023-01-01T12:00:00Z'
+    publishedAt: '2023-01-01T12:00:00Z',
+    description: 'This is a published list (Published)'
   }
 ];
 
@@ -73,7 +74,8 @@ describe('PublishList', () => {
   it('shows publish status for published list', () => {
     render(<PublishList listId="456" />);
     
-    expect(screen.getByText(/published on/i)).toBeInTheDocument();
+    // Use a more specific selector to target just the status text in the paragraph
+    expect(screen.getByText('Published', { selector: 'p.text-sm.text-gray-500' })).toBeInTheDocument();
     const publishedButton = screen.getByRole('button', { name: /published/i });
     expect(publishedButton).toBeInTheDocument();
     expect(publishedButton).toBeDisabled();

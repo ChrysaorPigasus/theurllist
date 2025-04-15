@@ -11,6 +11,8 @@ export default function PublishList({ listId }) {
   const { isLoading, error } = useStore(listUIState);
   
   const currentList = lists.find(list => list.id === listId);
+  // Check if list is published by looking for "(Published)" in the description
+  const isPublished = currentList?.description?.includes('(Published)');
 
   const handlePublish = async () => {
     if (!currentList) return;
@@ -35,8 +37,8 @@ export default function PublishList({ listId }) {
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-500">
-            {currentList.isPublished 
-              ? `Published on ${new Date(currentList.publishedAt).toLocaleDateString()}`
+            {isPublished 
+              ? `Published`
               : 'Your list is currently private'}
           </p>
         </div>
@@ -46,14 +48,14 @@ export default function PublishList({ listId }) {
           variant="primary"
           size="md"
           loading={isLoading}
-          disabled={currentList.isPublished}
+          disabled={isPublished}
           icon={
             <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           }
         >
-          {currentList.isPublished ? 'Published' : 'Publish List'}
+          {isPublished ? 'Published' : 'Publish List'}
         </Button>
 
         {feedback && !error && (

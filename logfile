@@ -377,3 +377,7 @@
 	      FROM lists l
 	      WHERE l.id = $1
 	    
+2025-04-15 19:45:02.599 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 19:45:02.751 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.111 s, sync=0.007 s, total=0.153 s; sync files=2, longest=0.005 s, average=0.004 s; distance=1 kB, estimate=4 kB; lsn=0/1B381E8, redo lsn=0/1B38190
+2025-04-15 19:50:02.758 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 19:50:02.889 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.113 s, sync=0.006 s, total=0.132 s; sync files=2, longest=0.004 s, average=0.003 s; distance=1 kB, estimate=4 kB; lsn=0/1B38858, redo lsn=0/1B38800
