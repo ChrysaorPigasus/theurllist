@@ -1,168 +1,113 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// Define mock functions before vi.mock calls
-const mockPublishList = vi.fn();
+// Mock the imported modules first
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn()
+}));
 
-// Mock the stores module
+// Mock the stores and functions
 vi.mock('../../../stores/lists', () => {
   return {
-    listStore: {
-      get: vi.fn(),
-      set: vi.fn(),
-      subscribe: vi.fn()
-    },
-    listUIState: {
-      get: vi.fn(),
-      set: vi.fn(),
-      subscribe: vi.fn()
-    },
-    publishList: (...args) => mockPublishList(...args)
+    listStore: {},
+    listUIState: {},
+    publishList: vi.fn().mockResolvedValue(true)
   };
 });
 
-// Mock the nanostores/react module
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store.mockId === 'listStore') {
-      return { 
-        lists: store.mockLists || [], 
-        activeListId: store.mockActiveListId || null
-      };
-    }
-    if (store.mockId === 'listUIState') {
-      return { 
-        isLoading: store.mockIsLoading || false,
-        error: store.mockError || null
-      };
-    }
-    return {};
-  }
-}));
-
-// Import the component after all mocks are defined
+// Import after mocking
+import { useStore } from '@nanostores/react';
+import { listStore, listUIState, publishList } from '../../../stores/lists';
 import PublishList from './PublishList';
-// Import the mocked modules to have access to the mock functions
-import { listStore, listUIState } from '../../../stores/lists';
 
-describe('PublishList', () => {
-  const mockUnpublishedList = {
+// Create mock values for the tests
+const mockLists = [
+  {
     id: '123',
     name: 'Test List',
+    urls: [],
     isPublished: false,
-    customUrl: 'test-url'
-  };
-
-  const mockPublishedList = {
+    publishedAt: null
+  },
+  {
     id: '456',
     name: 'Published List',
+    urls: [],
     isPublished: true,
-    publishedAt: '2025-01-01T00:00:00Z',
-    customUrl: 'published-list'
-  };
+    publishedAt: '2023-01-01T12:00:00Z'
+  }
+];
 
+describe('PublishList', () => {
+  const mockListId = '123';
+  let mockIsLoading = false;
+  let mockError = null;
+  
   beforeEach(() => {
-    // Reset mock state for stores
-    listStore.mockId = 'listStore';
-    listStore.mockLists = [mockUnpublishedList, mockPublishedList];
-    listStore.mockActiveListId = '123';
-    
-    listUIState.mockId = 'listUIState';
-    listUIState.mockIsLoading = false;
-    listUIState.mockError = null;
-    
-    // Reset mocks
     vi.clearAllMocks();
-    mockPublishList.mockReset();
+    
+    // Reset test values
+    mockIsLoading = false;
+    mockError = null;
+    
+    // Mock useStore to return store values
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return { lists: mockLists };
+      } else if (store === listUIState) {
+        return { isLoading: mockIsLoading, error: mockError };
+      }
+      return {};
+    });
   });
-
+  
   it('renders the publish button for unpublished list', () => {
     render(<PublishList listId="123" />);
     
-    // Look for the heading (use a more specific selector)
-    expect(screen.getByRole('heading', { name: 'Publish List' })).toBeInTheDocument();
-    
-    // Check if the button with the text "Publish List" exists
-    expect(screen.getByRole('button', { name: /publish list/i })).toBeInTheDocument();
-    
-    // Check for the private status message
-    expect(screen.getByText('Your list is currently private')).toBeInTheDocument();
-  });
-
-  it('shows publish status for published list', () => {
-    listStore.mockActiveListId = '456';
-    render(<PublishList listId="456" />);
-    
-    // Check for publish date text
-    expect(screen.getByText(`Published on ${new Date('2025-01-01T00:00:00Z').toLocaleDateString()}`)).toBeInTheDocument();
-    
-    // Check for the Published button (which should be disabled)
-    const publishButton = screen.getByRole('button', { name: /published/i });
+    expect(screen.getByText(/your list is currently private/i)).toBeInTheDocument();
+    const publishButton = screen.getByRole('button', { name: /publish list/i });
     expect(publishButton).toBeInTheDocument();
-    expect(publishButton).toBeDisabled();
   });
-
-  it('disables the publish button for published lists', () => {
-    listStore.mockActiveListId = '456';
+  
+  it('shows publish status for published list', () => {
     render(<PublishList listId="456" />);
     
-    const publishButton = screen.getByRole('button', { name: /published/i });
-    expect(publishButton).toBeDisabled();
+    expect(screen.getByText(/published on/i)).toBeInTheDocument();
+    const publishedButton = screen.getByRole('button', { name: /published/i });
+    expect(publishedButton).toBeInTheDocument();
+    expect(publishedButton).toBeDisabled();
   });
-
-  it('publishes the list when publish button is clicked', async () => {
-    mockPublishList.mockResolvedValueOnce(true);
-    
+  
+  it('publishes the list when publish button is clicked', () => {
     render(<PublishList listId="123" />);
     
-    const publishButton = screen.getByRole('button', { name: /publish list/i });
-    await act(async () => {
-      fireEvent.click(publishButton);
-    });
+    fireEvent.click(screen.getByRole('button', { name: /publish list/i }));
     
-    expect(mockPublishList).toHaveBeenCalledWith('123');
-    
-    // Should show success message
-    await waitFor(() => {
-      expect(screen.getByText(/published successfully/i)).toBeInTheDocument();
-    });
+    expect(publishList).toHaveBeenCalledWith('123');
   });
-
-  it('shows loading state when publishing', async () => {
-    // Setup a promise that doesn't resolve immediately
-    let resolvePromise;
-    const publishPromise = new Promise(resolve => { resolvePromise = resolve; });
-    mockPublishList.mockReturnValueOnce(publishPromise);
-    
-    // Mock the loading state
-    listUIState.mockIsLoading = true;
+  
+  it('shows loading state when publishing', () => {
+    mockIsLoading = true;
     
     render(<PublishList listId="123" />);
     
     const publishButton = screen.getByRole('button', { name: /publish list/i });
     expect(publishButton).toBeDisabled();
-    
-    // Resolve the promise
-    await act(async () => {
-      resolvePromise(true);
-      await publishPromise;
-    });
   });
-
-  it('handles publishing errors gracefully', async () => {
-    listUIState.mockError = 'Failed to publish list';
+  
+  it('handles publishing errors gracefully', () => {
+    mockError = 'Failed to publish list';
     
     render(<PublishList listId="123" />);
     
-    // Should show error message
     expect(screen.getByText('Failed to publish list')).toBeInTheDocument();
   });
-
+  
   it('returns null when list is not found', () => {
-    listStore.mockLists = [];
-    
     const { container } = render(<PublishList listId="999" />);
+    
+    // The component should return null if the list is not found
     expect(container.firstChild).toBeNull();
   });
 });

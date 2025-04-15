@@ -1,160 +1,188 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import ViewUrlsInList from './ViewUrlsInList';
 
-// Mock variables to prevent reference errors
-const listStoreMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockLists: [],
-  mockActiveListId: null
-};
+// Mocks first to avoid hoisting issues
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn((store) => store.get())
+}));
 
-const listUIStateMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockIsLoading: false,
-  mockError: null
-};
-
-// Mock the stores module
+// Mock the stores/lists module
 vi.mock('../../../stores/lists', () => {
   return {
-    listStore: listStoreMock,
-    listUIState: listUIStateMock,
+    listStore: {
+      get: vi.fn(() => ({ lists: [], activeListId: null }))
+    },
+    listUIState: {
+      get: vi.fn(() => ({ isLoading: false, error: null }))
+    },
     addUrlToList: vi.fn(),
     updateUrl: vi.fn(),
     deleteUrl: vi.fn()
   };
 });
 
-// Mock the nanostores/react module
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store === listStoreMock) {
-      return { 
-        lists: listStoreMock.mockLists, 
-        activeListId: listStoreMock.mockActiveListId 
-      };
-    }
-    if (store === listUIStateMock) {
-      return { 
-        isLoading: listUIStateMock.mockIsLoading, 
-        error: listUIStateMock.mockError 
-      };
-    }
-    return {};
-  }
-}));
-
-// Mock child components
-vi.mock('./AddUrlsToList', () => ({
-  default: () => <div data-testid="add-urls-mock">Add URLs Mock</div>
-}));
-
-vi.mock('./EditUrlsInList', () => ({
-  default: () => <div data-testid="edit-urls-mock">Edit URLs Mock</div>
-}));
-
-vi.mock('./DeleteUrlsFromList', () => ({
-  default: () => <div data-testid="delete-urls-mock">Delete URLs Mock</div>
-}));
-
-vi.mock('./UrlListTable', () => ({
-  default: ({ urls }) => (
-    <div data-testid="url-list-table-mock">
-      URL List Table Mock - {urls.length} URLs
-    </div>
-  )
-}));
-
-vi.mock('./SearchAndFilter', () => ({
-  default: ({ onSearch }) => (
-    <div data-testid="search-filter-mock">
-      <button onClick={() => onSearch('test')}>Search</button>
-    </div>
-  )
-}));
+import { listStore, listUIState, addUrlToList, updateUrl, deleteUrl } from '../../../stores/lists';
 
 describe('ViewUrlsInList', () => {
+  const mockListId = '1';
+  const mockUrls = [
+    { id: 1, url: 'https://example.com', title: 'Example', created_at: '2023-01-01' },
+    { id: 2, url: 'https://example2.com', title: 'Example 2', created_at: '2023-01-02' }
+  ];
   const mockList = {
-    id: '123',
+    id: 1,
     name: 'Test List',
-    urls: [
-      { id: 'url1', url: 'https://example.com', title: 'Example 1' },
-      { id: 'url2', url: 'https://example.org', title: 'Example 2' },
-    ]
-  };
-
-  const emptyList = {
-    id: '456',
-    name: 'Empty List',
-    urls: []
+    urls: mockUrls
   };
 
   beforeEach(() => {
-    // Reset mock state for stores
-    listStoreMock.mockLists = [mockList, emptyList];
-    listStoreMock.mockActiveListId = '123';
-    listUIStateMock.mockIsLoading = false;
-    listUIStateMock.mockError = null;
-    
-    // Reset mocks
     vi.clearAllMocks();
+    // Set up mock return values
+    listStore.get.mockReturnValue({ 
+      lists: [mockList], 
+      activeListId: 1 
+    });
+    listUIState.get.mockReturnValue({ isLoading: false, error: null });
+    addUrlToList.mockResolvedValue(true);
+    updateUrl.mockResolvedValue(true);
+    deleteUrl.mockResolvedValue(true);
+    
+    // Mock window.dispatchEvent
+    window.dispatchEvent = vi.fn();
   });
 
-  it('renders URL list with all components', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    expect(screen.getByText('URL List Table Mock - 2 URLs')).toBeInTheDocument();
-    expect(screen.getByTestId('add-urls-mock')).toBeInTheDocument();
-    expect(screen.getByTestId('edit-urls-mock')).toBeInTheDocument();
-    expect(screen.getByTestId('delete-urls-mock')).toBeInTheDocument();
-    expect(screen.getByTestId('search-filter-mock')).toBeInTheDocument();
+  it('renders without crashing', () => {
+    render(<ViewUrlsInList listId={mockListId} />);
+    expect(screen.getByText('URLs in List')).toBeInTheDocument();
   });
 
-  it('shows loading state when data is loading', () => {
-    listUIStateMock.mockIsLoading = true;
+  it('displays URLs in the list', () => {
+    render(<ViewUrlsInList listId={mockListId} />);
     
-    render(<ViewUrlsInList listId="123" />);
-    
-    expect(screen.getByRole('status')).toBeInTheDocument();
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    expect(screen.getByText('Example')).toBeInTheDocument();
+    expect(screen.getByText('https://example.com')).toBeInTheDocument();
+    expect(screen.getByText('Example 2')).toBeInTheDocument();
+    expect(screen.getByText('https://example2.com')).toBeInTheDocument();
   });
 
-  it('shows empty state when no URLs are found', () => {
-    listStoreMock.mockActiveListId = '456';
+  it('shows an empty state when no URLs are in the list', () => {
+    // Mock an empty list
+    listStore.get.mockReturnValue({ 
+      lists: [{ id: 1, name: 'Empty List', urls: [] }], 
+      activeListId: 1 
+    });
     
-    render(<ViewUrlsInList listId="456" />);
+    render(<ViewUrlsInList listId={mockListId} />);
     
-    expect(screen.getByText('URL List Table Mock - 0 URLs')).toBeInTheDocument();
+    const emptyStateTexts = screen.getAllByText('No URLs in this list yet');
+    expect(emptyStateTexts.length).toBeGreaterThan(0);
+    expect(screen.getByText('Add some URLs to get started')).toBeInTheDocument();
   });
 
-  it('handles errors gracefully', () => {
-    listUIStateMock.mockError = 'Failed to fetch URLs';
+  it('allows adding a new URL', async () => {
+    render(<ViewUrlsInList listId={mockListId} />);
     
-    render(<ViewUrlsInList listId="123" />);
+    // Fill in the URL input
+    const urlInput = screen.getByPlaceholderText('https://example.com');
+    fireEvent.change(urlInput, { target: { value: 'https://test.com' } });
     
-    expect(screen.getByText('Failed to fetch URLs')).toBeInTheDocument();
+    // Click the Add URL button
+    const addButton = screen.getByText('Add URL');
+    fireEvent.click(addButton);
+    
+    // Verify addUrlToList was called with correct parameters
+    expect(addUrlToList).toHaveBeenCalledWith(mockListId, expect.objectContaining({
+      url: 'https://test.com'
+    }));
+    
+    // Verify dispatchEvent was called to refresh the list
+    await waitFor(() => {
+      expect(window.dispatchEvent).toHaveBeenCalledWith(expect.any(CustomEvent));
+    });
   });
 
-  it('filters URLs when search is applied', () => {
-    render(<ViewUrlsInList listId="123" />);
+  it('shows and hides additional fields when button is clicked', () => {
+    render(<ViewUrlsInList listId={mockListId} />);
     
-    // Click the search button
-    fireEvent.click(screen.getByText('Search'));
+    // Initially additional fields should be hidden
+    expect(screen.queryByText('Name', { selector: 'label' })).not.toBeInTheDocument();
     
-    // Should still render the URL list with filtered URLs
-    expect(screen.getByText('URL List Table Mock - 2 URLs')).toBeInTheDocument();
+    // Click to show additional fields
+    fireEvent.click(screen.getByText('Show additional fields'));
+    
+    // Now the fields should be visible
+    // Use getAllByText to find labels
+    expect(screen.getByText('Name', { selector: 'label' })).toBeInTheDocument();
+    expect(screen.getByText('Title', { selector: 'label' })).toBeInTheDocument();
+    expect(screen.getByText('Description', { selector: 'label' })).toBeInTheDocument();
+    expect(screen.getByText('Image URL', { selector: 'label' })).toBeInTheDocument();
+    
+    // Click to hide additional fields
+    fireEvent.click(screen.getByText('Hide additional fields'));
+    
+    // Now the fields should be hidden again
+    expect(screen.queryByText('Name', { selector: 'label' })).not.toBeInTheDocument();
   });
 
-  it('returns null when list is not found', () => {
-    listStoreMock.mockLists = [];
-    listStoreMock.mockActiveListId = null;
+  it('opens edit URL dialog when edit button is clicked', () => {
+    render(<ViewUrlsInList listId={mockListId} />);
     
-    const { container } = render(<ViewUrlsInList listId="999" />);
-    expect(container.firstChild).toBeNull();
+    // Find and click the first edit button
+    const editButtons = screen.getAllByText('Edit');
+    fireEvent.click(editButtons[0]);
+    
+    // Verify edit dialog is open
+    expect(screen.getByText('Edit URL')).toBeInTheDocument();
+    expect(screen.getByText('Update details for this URL')).toBeInTheDocument();
+  });
+
+  it('opens delete URL dialog when delete button is clicked', () => {
+    render(<ViewUrlsInList listId={mockListId} />);
+    
+    // Find and click the first delete button
+    const deleteButtons = screen.getAllByText('Delete');
+    fireEvent.click(deleteButtons[0]);
+    
+    // Verify delete dialog is open
+    expect(screen.getByText('Delete URL')).toBeInTheDocument();
+    expect(screen.getByText(/Are you sure you want to delete/)).toBeInTheDocument();
+  });
+
+  it('allows searching URLs in the list', () => {
+    render(<ViewUrlsInList listId={mockListId} />);
+    
+    // Initially both URLs should be visible
+    expect(screen.getByText('Example')).toBeInTheDocument();
+    expect(screen.getByText('Example 2')).toBeInTheDocument();
+    
+    // Search for the first URL
+    const searchInput = screen.getByPlaceholderText('Search URLs...');
+    fireEvent.change(searchInput, { target: { value: 'example.com' } });
+    
+    // Now only the first URL should be in the document, not the second
+    expect(screen.getByText('Example')).toBeInTheDocument();
+    expect(screen.queryByText('Example 2')).not.toBeInTheDocument();
+  });
+
+  it('shows loading state when loading', () => {
+    // Mock loading state
+    listUIState.get.mockReturnValue({ isLoading: true, error: null });
+    
+    render(<ViewUrlsInList listId={mockListId} />);
+    
+    // Check for spinner
+    const spinner = document.querySelector('.animate-spin');
+    expect(spinner).toBeInTheDocument();
+  });
+
+  it('shows error state when there is an error', () => {
+    // Mock error state
+    listUIState.get.mockReturnValue({ isLoading: false, error: 'Failed to load list' });
+    
+    render(<ViewUrlsInList listId={mockListId} />);
+    
+    expect(screen.getByText('Failed to load list')).toBeInTheDocument();
   });
 });

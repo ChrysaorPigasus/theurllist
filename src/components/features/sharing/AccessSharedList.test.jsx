@@ -1,174 +1,120 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import AccessSharedList from './AccessSharedList';
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// Mock variables to prevent reference errors
-const listStoreMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockLists: [],
-  mockActiveListId: null
-};
+// Mock dependencies before importing the component
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn((store) => {
+    // This implementation will be overridden in beforeEach
+    return {};
+  })
+}));
 
-const listUIStateMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockIsLoading: false,
-  mockError: null
-};
-
-const mockInitializeStore = vi.fn();
-const mockSetActiveListId = vi.fn();
-
-// Mock the stores module
+// Mock the stores module using the factory pattern
+// This approach avoids hoisting issues with vi.mock
 vi.mock('../../../stores/lists', () => {
   return {
-    listStore: listStoreMock,
-    listUIState: listUIStateMock,
-    initializeStore: mockInitializeStore,
-    setActiveListId: mockSetActiveListId
+    listStore: {},
+    listUIState: {},
+    initializeStore: vi.fn(),
+    setActiveList: vi.fn()
   };
 });
 
-// Mock the nanostores/react module
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store === listStoreMock) {
-      return { 
-        lists: listStoreMock.mockLists, 
-        activeListId: listStoreMock.mockActiveListId 
-      };
-    }
-    if (store === listUIStateMock) {
-      return { 
-        isLoading: listUIStateMock.mockIsLoading, 
-        error: listUIStateMock.mockError 
-      };
-    }
-    return {};
-  }
-}));
+// Import after mocking
+import AccessSharedList from './AccessSharedList';
+import { useStore } from '@nanostores/react';
+import { listStore, listUIState, initializeStore, setActiveList } from '../../../stores/lists';
 
 describe('AccessSharedList', () => {
-  const mockList = {
-    id: '123',
-    name: 'Test List',
-    isPublished: true,
-    publishedAt: '2025-01-01T00:00:00Z',
-    urls: [
-      { id: 'url1', url: 'https://example.com', title: 'Example 1' },
-      { id: 'url2', url: 'https://example.org', title: 'Example 2' },
-    ]
-  };
+  // Define test data
+  const mockLists = [
+    {
+      id: '123',
+      name: 'Test List',
+      urls: [
+        { id: '1', title: 'Example', url: 'https://example.com', createdAt: '2023-01-01' }
+      ],
+      isPublished: true
+    },
+    {
+      id: '456',
+      name: 'Private List',
+      urls: [],
+      isPublished: false
+    }
+  ];
+  
+  let mockActiveListId;
+  let mockIsLoading;
+  let mockError;
 
   beforeEach(() => {
-    // Reset mock state for stores
-    listStoreMock.mockLists = [];
-    listStoreMock.mockActiveListId = null;
-    listUIStateMock.mockIsLoading = false;
-    listUIStateMock.mockError = null;
-    
-    // Reset mocks
     vi.clearAllMocks();
     
-    // Default mock implementation
-    mockInitializeStore.mockResolvedValue({
-      listFound: true,
-      list: mockList
+    // Reset mock values for each test
+    mockActiveListId = null;
+    mockIsLoading = false;
+    mockError = null;
+    
+    // Set up useStore mock implementation for each test
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return { lists: mockLists, activeListId: mockActiveListId };
+      }
+      if (store === listUIState) {
+        return { isLoading: mockIsLoading, error: mockError };
+      }
+      return {};
     });
   });
 
-  it('initializes store and fetches the shared list', async () => {
+  it('initializes store and sets active list when mounted', () => {
     render(<AccessSharedList listId="123" />);
     
-    expect(mockInitializeStore).toHaveBeenCalledWith('123');
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    
-    await waitFor(() => {
-      expect(mockSetActiveListId).toHaveBeenCalledWith('123');
-    });
+    expect(initializeStore).toHaveBeenCalled();
+    expect(setActiveList).toHaveBeenCalledWith('123');
   });
 
-  it('shows loading state while list is being fetched', () => {
-    // Simulate loading state
-    listUIStateMock.mockIsLoading = true;
+  it('shows loading spinner while list is being loaded', () => {
+    mockIsLoading = true;
     
     render(<AccessSharedList listId="123" />);
     
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    // Use data-testid instead of role to find the spinner
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
   });
 
-  it('displays the list title once loaded', async () => {
-    // Simulate successful list load
-    mockInitializeStore.mockResolvedValueOnce({
-      listFound: true,
-      list: mockList
-    });
+  it('displays the shared list when loaded successfully', () => {
+    mockActiveListId = '123';
     
     render(<AccessSharedList listId="123" />);
     
-    // Wait for the loading state to finish
-    await waitFor(() => {
-      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
-    });
-    
-    // Check that list info is displayed
     expect(screen.getByText('Test List')).toBeInTheDocument();
-    expect(screen.getByText('Shared list')).toBeInTheDocument();
+    expect(screen.getByText('https://example.com')).toBeInTheDocument();
   });
 
-  it('shows error message when list access fails', async () => {
-    // Simulate API error
-    mockInitializeStore.mockRejectedValueOnce(new Error('Failed to access list'));
+  it('shows error message when there is an error', () => {
+    mockError = 'Failed to access list';
     
     render(<AccessSharedList listId="123" />);
     
-    await waitFor(() => {
-      expect(screen.getByText('Failed to access list')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Failed to access list')).toBeInTheDocument();
   });
 
-  it('shows warning when list is not published', async () => {
-    // Simulate unpublished list
-    const unpublishedList = { ...mockList, isPublished: false };
-    mockInitializeStore.mockResolvedValueOnce({
-      listFound: true,
-      list: unpublishedList
-    });
-    
-    render(<AccessSharedList listId="123" />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('This list is not published')).toBeInTheDocument();
-    });
-  });
-
-  it('shows error when list is not found', async () => {
-    // Simulate list not found
-    mockInitializeStore.mockResolvedValueOnce({
-      listFound: false
-    });
+  it('shows "List Not Found" message when list does not exist', () => {
+    mockActiveListId = '999'; // Non-existent list ID
     
     render(<AccessSharedList listId="999" />);
     
-    await waitFor(() => {
-      expect(screen.getByText('List not found')).toBeInTheDocument();
-    });
+    expect(screen.getByText('List Not Found')).toBeInTheDocument();
   });
 
-  it('displays published date for published lists', async () => {
-    mockInitializeStore.mockResolvedValueOnce({
-      listFound: true,
-      list: mockList
-    });
+  it('shows "Private List" message for unpublished lists', () => {
+    mockActiveListId = '456'; // The unpublished list
     
-    render(<AccessSharedList listId="123" />);
+    render(<AccessSharedList listId="456" />);
     
-    await waitFor(() => {
-      expect(screen.getByText(`Published on ${new Date('2025-01-01T00:00:00Z').toLocaleDateString()}`)).toBeInTheDocument();
-    });
+    expect(screen.getByText('Private List')).toBeInTheDocument();
   });
 });

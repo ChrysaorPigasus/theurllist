@@ -61,6 +61,21 @@ vi.mock('../../ui/Input', () => ({
   }
 }));
 
+// Mock the Button component
+vi.mock('../../ui/Button', () => ({
+  default: ({ children, onClick, disabled, loading, ...props }) => (
+    <button 
+      onClick={onClick} 
+      disabled={disabled} 
+      data-loading={loading}
+      {...props}
+    >
+      {loading && <span className="animate-spin">⟳</span>}
+      {children}
+    </button>
+  )
+}));
+
 describe('AddUrlsToList', () => {
   const mockList = {
     id: '123',

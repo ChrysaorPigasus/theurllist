@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { UrlList } from './AddUrlsToList';
+import { UrlList } from './AddUrlsToList'; // This is correct - UrlList is a named export from AddUrlsToList
 
 describe('UrlList', () => {
   it('renders a list of URLs', () => {

@@ -1,179 +1,121 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import CreateNewList from './CreateNewList';
+import { vi } from 'vitest';
 
-// Mock variables to prevent reference errors
-const listStoreMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockLists: []
-};
+// Mocks need to be defined before importing the component
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn((store) => store.get())
+}));
 
-const listUIStateMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockIsLoading: false,
-  mockError: null
-};
-
-const mockCreateList = vi.fn();
-
-// Mock the stores module
+// Mock the stores/lists module
 vi.mock('../../../stores/lists', () => {
   return {
-    listStore: listStoreMock,
-    listUIState: listUIStateMock,
-    createList: mockCreateList
+    listStore: {
+      get: vi.fn(() => ({ lists: [] }))
+    },
+    listUIState: {
+      get: vi.fn(() => ({ isLoading: false, error: null }))
+    },
+    createList: vi.fn()
   };
 });
 
-// Mock the nanostores/react module
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store === listStoreMock) {
-      return { 
-        lists: listStoreMock.mockLists
-      };
-    }
-    if (store === listUIStateMock) {
-      return { 
-        isLoading: listUIStateMock.mockIsLoading, 
-        error: listUIStateMock.mockError 
-      };
-    }
-    return {};
-  }
-}));
+// Import the component and mocked dependencies after mock definitions
+import CreateNewList from './CreateNewList';
+import { listStore, listUIState, createList } from '../../../stores/lists';
 
 describe('CreateNewList', () => {
   beforeEach(() => {
-    // Reset mock state for stores
-    listStoreMock.mockLists = [];
-    listUIStateMock.mockIsLoading = false;
-    listUIStateMock.mockError = null;
-    
-    // Reset mocks
     vi.clearAllMocks();
+    
+    // Reset the mock return values
+    listStore.get.mockReturnValue({ lists: [] });
+    listUIState.get.mockReturnValue({ isLoading: false, error: null });
+    createList.mockResolvedValue(true);
   });
 
-  it('renders the create list form', () => {
+  it('renders without crashing', () => {
     render(<CreateNewList />);
-    
     expect(screen.getByText('Create New List')).toBeInTheDocument();
-    expect(screen.getByLabelText('List Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Description')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create list/i })).toBeInTheDocument();
   });
 
-  it('submits the form with list data', async () => {
-    mockCreateList.mockResolvedValueOnce({ id: 'new-list-id' });
-    
+  it('allows inputting a list name', () => {
     render(<CreateNewList />);
     
-    // Fill out the form
-    fireEvent.change(screen.getByLabelText('List Name'), {
-      target: { value: 'My Test List' }
-    });
+    const input = screen.getByPlaceholderText('Enter list name');
+    fireEvent.change(input, { target: { value: 'My New List' } });
     
-    fireEvent.change(screen.getByLabelText('Description'), {
-      target: { value: 'This is a test list description' }
-    });
+    expect(input.value).toBe('My New List');
+  });
+
+  it('disables the create button when input is empty', () => {
+    render(<CreateNewList />);
     
-    // Submit the form
-    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
+    const createButton = screen.getByText('Create List');
+    expect(createButton).toBeDisabled();
+  });
+
+  it('enables the create button when input has text', () => {
+    render(<CreateNewList />);
     
-    // Check if createList was called with correct data
-    expect(mockCreateList).toHaveBeenCalledWith({
-      name: 'My Test List',
-      description: 'This is a test list description'
-    });
+    const input = screen.getByPlaceholderText('Enter list name');
+    fireEvent.change(input, { target: { value: 'My New List' } });
     
-    // Should show success message
+    const createButton = screen.getByText('Create List');
+    expect(createButton).not.toBeDisabled();
+  });
+
+  it('calls createList when the create button is clicked', async () => {
+    render(<CreateNewList />);
+    
+    const input = screen.getByPlaceholderText('Enter list name');
+    fireEvent.change(input, { target: { value: 'My New List' } });
+    
+    const createButton = screen.getByText('Create List');
+    fireEvent.click(createButton);
+    
+    expect(createList).toHaveBeenCalledWith('My New List');
+    
     await waitFor(() => {
-      expect(screen.getByText('List created successfully!')).toBeInTheDocument();
+      // Check for success feedback
+      expect(screen.getByText(/List "My New List" created successfully!/)).toBeInTheDocument();
     });
   });
 
-  it('validates required fields', () => {
+  it('shows loading state while creating a list', () => {
+    // Mock loading state
+    listUIState.get.mockReturnValue({ isLoading: true, error: null });
+    
     render(<CreateNewList />);
     
-    // Submit empty form
-    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
-    
-    // Should show validation errors
-    expect(screen.getByText('Name is required')).toBeInTheDocument();
-    expect(mockCreateList).not.toHaveBeenCalled();
+    // Look for a disabled button with loading state
+    const createButton = screen.getByText('Create List');
+    expect(createButton).toBeDisabled();
+    // Check for SVG spinner
+    expect(document.querySelector('svg.animate-spin')).toBeInTheDocument();
   });
 
-  it('shows loading state when creating list', async () => {
-    // Setup a promise that doesn't resolve immediately
-    let resolvePromise;
-    const createPromise = new Promise(resolve => { resolvePromise = resolve; });
-    mockCreateList.mockReturnValueOnce(createPromise);
+  it('shows error message if list creation fails', () => {
+    // Mock error state
+    listUIState.get.mockReturnValue({ isLoading: false, error: 'List creation failed' });
     
     render(<CreateNewList />);
     
-    // Fill out the form
-    fireEvent.change(screen.getByLabelText('List Name'), {
-      target: { value: 'My Test List' }
-    });
-    
-    // Submit the form
-    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
-    
-    // Button should be in loading state
-    const button = screen.getByRole('button', { name: /creating/i });
-    expect(button).toBeDisabled();
-    expect(button.querySelector('.animate-spin')).toBeInTheDocument();
-    
-    // Resolve the promise
-    resolvePromise({ id: 'new-list-id' });
-    await createPromise;
+    expect(screen.getByText('List creation failed')).toBeInTheDocument();
   });
 
-  it('handles API errors gracefully', async () => {
-    mockCreateList.mockRejectedValueOnce(new Error('Failed to create list'));
-    
+  it('clears the input after successful list creation', async () => {
     render(<CreateNewList />);
     
-    // Fill out the form
-    fireEvent.change(screen.getByLabelText('List Name'), {
-      target: { value: 'My Test List' }
-    });
+    const input = screen.getByPlaceholderText('Enter list name');
+    fireEvent.change(input, { target: { value: 'My New List' } });
     
-    // Submit the form
-    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
+    const createButton = screen.getByText('Create List');
+    fireEvent.click(createButton);
     
-    // Should show error message
     await waitFor(() => {
-      expect(screen.getByText('Failed to create list')).toBeInTheDocument();
+      // After successful creation, the input should be cleared
+      expect(input.value).toBe('');
     });
-  });
-
-  it('resets the form after successful submission', async () => {
-    mockCreateList.mockResolvedValueOnce({ id: 'new-list-id' });
-    
-    render(<CreateNewList />);
-    
-    // Fill out the form
-    const nameInput = screen.getByLabelText('List Name');
-    const descInput = screen.getByLabelText('Description');
-    
-    fireEvent.change(nameInput, { target: { value: 'My Test List' } });
-    fireEvent.change(descInput, { target: { value: 'This is a test list description' } });
-    
-    // Submit the form
-    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
-    
-    // Wait for submission to complete
-    await waitFor(() => {
-      expect(screen.getByText('List created successfully!')).toBeInTheDocument();
-    });
-    
-    // Form should be reset
-    expect(nameInput.value).toBe('');
-    expect(descInput.value).toBe('');
   });
 });

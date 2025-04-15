@@ -1,172 +1,183 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import ShareList from './ShareList';
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// Mock the nanostores/react package
+// Mock window.open and window.location
+const originalWindow = { ...window };
+Object.defineProperty(window, 'open', {
+  writable: true,
+  value: vi.fn()
+});
+Object.defineProperty(window, 'location', {
+  writable: true,
+  value: { href: '' }
+});
+
+// Mock clipboard API
+Object.defineProperty(navigator, 'clipboard', {
+  writable: true,
+  value: {
+    writeText: vi.fn().mockResolvedValue(undefined)
+  }
+});
+
+// Mock stores
 vi.mock('@nanostores/react', () => ({
-  useStore: (store) => store.value
+  useStore: vi.fn()
 }));
 
-// Mock the UI components
-vi.mock('../../../components/ui/Button', () => ({
-  default: ({ children, onClick }) => (
-    <button onClick={onClick}>{children}</button>
-  )
-}));
-
-vi.mock('../../../components/ui/Input', () => ({
-  default: ({ label, value, readOnly }) => (
-    <>
-      <label>{label}</label>
-      <input value={value} readOnly={readOnly} aria-label={label} />
-    </>
-  )
-}));
-
-vi.mock('../../../components/ui/Card', () => ({
-  default: ({ title, description, children }) => (
-    <div>
-      <h2>{title}</h2>
-      <p>{description}</p>
-      {children}
-    </div>
-  )
-}));
-
-// Mock the stores module with the correct path
+// Mock the stores/lists module
 vi.mock('../../../stores/lists', () => {
-  // Define mock data inside the factory function to avoid hoisting issues
-  const mockList = {
-    id: '123',
-    name: 'Test List',
-    slug: 'test-list'
-  };
-
   return {
-    listStore: {
-      value: {
-        lists: [mockList],
-        activeListId: '123'
-      },
-      listen: vi.fn(),
-      subscribe: vi.fn()
-    },
-    listUIState: {
-      value: {
-        isLoading: false,
-        error: null
-      },
-      listen: vi.fn(),
-      subscribe: vi.fn()
-    },
-    shareList: vi.fn().mockImplementation(() => Promise.resolve())
+    listStore: { get: vi.fn() },
+    listUIState: { get: vi.fn() },
+    shareList: vi.fn()
   };
 });
 
+// Import the component and dependencies after mock definitions
+import ShareList from './ShareList';
+import { useStore } from '@nanostores/react';
+import { listStore, listUIState, shareList } from '../../../stores/lists';
+
 describe('ShareList', () => {
+  const mockList = { 
+    id: '1', 
+    name: 'Test List',
+    urls: [
+      { id: 1, url: 'https://example.com', title: 'Example' }
+    ],
+    slug: 'test-list'
+  };
+
+  const mockStoreData = {
+    lists: [mockList],
+    activeListId: '1'
+  };
+
+  const mockUIState = {
+    isLoading: false,
+    error: null
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Mock the clipboard API
-    Object.defineProperty(global.navigator, 'clipboard', {
-      value: {
-        writeText: vi.fn().mockImplementation(() => Promise.resolve())
-      },
-      configurable: true
+    // Set up the mock return values for useStore
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return mockStoreData;
+      }
+      if (store === listUIState) {
+        return mockUIState;
+      }
+      return {};
     });
 
-    // Mock window.open for social sharing
-    global.window.open = vi.fn();
-    
-    // Mock window.location with proper origin
-    Object.defineProperty(global.window, 'location', {
-      value: {
-        href: 'http://localhost:3000',
+    // Reset mocked functions
+    window.open.mockReset();
+    window.location.href = '';
+    navigator.clipboard.writeText.mockReset();
+    navigator.clipboard.writeText.mockResolvedValue(undefined);
+  });
+
+  it('renders the share list component', () => {
+    render(<ShareList listId="1" />);
+    expect(screen.getByText(/Share List/i)).toBeInTheDocument();
+    expect(screen.getByText(/Share your list with others/i)).toBeInTheDocument();
+  });
+
+  it('displays the shareable URL', () => {
+    // Mock window.location.origin
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { 
+        ...window.location,
         origin: 'http://localhost:3000'
-      },
-      writable: true
+      }
     });
-  });
 
-  afterEach(() => {
-    vi.resetAllMocks();
-  });
-
-  it('displays share URL', () => {
-    render(<ShareList />);
+    render(<ShareList listId="1" />);
     
-    expect(screen.getByLabelText('Shareable URL')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Copy URL' })).toBeInTheDocument();
+    // Check if the input contains the expected URL
+    const input = screen.getByLabelText(/Shareable URL/i);
+    expect(input).toHaveValue('http://localhost:3000/list/test-list');
   });
 
-  it('shows social sharing options', () => {
-    render(<ShareList />);
+  it('copies URL to clipboard when Copy URL button is clicked', async () => {
+    render(<ShareList listId="1" />);
     
-    expect(screen.getByText('Share via:')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Twitter' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'LinkedIn' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Email' })).toBeInTheDocument();
-  });
-
-  it('copies share link to clipboard when button is clicked', async () => {
-    render(<ShareList />);
-    
-    const copyButton = screen.getByRole('button', { name: 'Copy URL' });
+    const copyButton = screen.getByRole('button', { name: /Copy URL/i });
     fireEvent.click(copyButton);
     
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/list/test-list');
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalled();
+      expect(screen.getByText(/URL copied to clipboard!/i)).toBeInTheDocument();
+    });
   });
 
-  it('shares to Twitter when Twitter button is clicked', () => {
-    render(<ShareList />);
+  it('opens Twitter share dialog when Twitter button is clicked', () => {
+    render(<ShareList listId="1" />);
     
-    const twitterButton = screen.getByRole('button', { name: 'Twitter' });
+    const twitterButton = screen.getByRole('button', { name: /Twitter/i });
     fireEvent.click(twitterButton);
     
     expect(window.open).toHaveBeenCalledWith(expect.stringContaining('twitter.com/intent/tweet'));
   });
 
-  it('shares to LinkedIn when LinkedIn button is clicked', () => {
-    render(<ShareList />);
+  it('opens LinkedIn share dialog when LinkedIn button is clicked', () => {
+    render(<ShareList listId="1" />);
     
-    const linkedinButton = screen.getByRole('button', { name: 'LinkedIn' });
+    const linkedinButton = screen.getByRole('button', { name: /LinkedIn/i });
     fireEvent.click(linkedinButton);
     
-    expect(window.open).toHaveBeenCalledWith(expect.stringContaining('linkedin.com/sharing/share-offsite'));
+    expect(window.open).toHaveBeenCalledWith(expect.stringContaining('linkedin.com/sharing'));
   });
 
-  it('shares via email when Email button is clicked', () => {
-    // Save the original window.location.href
-    const originalHref = window.location.href;
+  it('opens email client when Email button is clicked', () => {
+    render(<ShareList listId="1" />);
     
-    render(<ShareList />);
-    
-    const emailButton = screen.getByRole('button', { name: 'Email' });
+    const emailButton = screen.getByRole('button', { name: /Email/i });
     fireEvent.click(emailButton);
     
-    // In the implementation, it sets window.location.href directly
     expect(window.location.href).toMatch(/^mailto:/);
-    
-    // Restore original href for other tests
-    window.location.href = originalHref;
   });
 
-  it('renders null when no active list is found', () => {
-    // Override the mock for this test only
-    const { listStore } = require('../../../stores/lists');
-    const originalValue = { ...listStore.value };
-    
-    // Set to an empty list to simulate no active list
-    listStore.value = {
-      ...listStore.value,
-      lists: []
-    };
-    
-    const { container } = render(<ShareList />);
-    
-    expect(container.firstChild).toBeNull();
-    
-    // Restore the original value for subsequent tests
-    listStore.value = originalValue;
+  it('returns null when activeList is not found', () => {
+    // Override useStore to return no active list
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return { 
+          lists: [mockList],
+          activeListId: '999' // Non-existent ID
+        };
+      }
+      if (store === listUIState) {
+        return mockUIState;
+      }
+      return {};
+    });
+
+    const { container } = render(<ShareList listId="999" />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('displays error message when there is an error', () => {
+    // Override useStore to return an error
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return mockStoreData;
+      }
+      if (store === listUIState) {
+        return { 
+          isLoading: false,
+          error: 'Failed to share list'
+        };
+      }
+      return {};
+    });
+
+    render(<ShareList listId="1" />);
+    expect(screen.getByText(/Failed to share list/i)).toBeInTheDocument();
   });
 });

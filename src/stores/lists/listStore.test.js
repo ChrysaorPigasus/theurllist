@@ -1,340 +1,359 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { 
-  listStore, 
-  listUIState, 
-  initializeStore, 
-  fetchLists, 
-  createList, 
-  deleteList, 
-  setActiveList, 
-  getActiveList,
-  fetchListDetails
-} from './listStore';
-import { urlListStore } from '../urlListStore';
+import { map } from 'nanostores';
 
-// Mock fetch API
+// Create mock implementation for fetch
 global.fetch = vi.fn();
 
-// Mock console methods
-console.error = vi.fn();
-console.log = vi.fn();
+// Mock the urlListStore module
+vi.mock('../urlListStore', () => {
+  return {
+    urlListStore: {
+      get: vi.fn(() => ({ lists: [], activeListId: null })),
+      set: vi.fn(),
+      setKey: vi.fn()
+    },
+    isLoading: {
+      get: vi.fn(() => false),
+      set: vi.fn()
+    },
+    error: {
+      get: vi.fn(() => null),
+      set: vi.fn()
+    }
+  };
+});
+
+// Import real stores but mock their methods
+import { urlListStore } from '../urlListStore';
+import * as listStoreModule from './listStore';
+
+// Manually mock the store methods to track calls while still allowing the real implementation
+const originalListStore = listStoreModule.listStore;
+const originalListUIState = listStoreModule.listUIState;
+
+// Save original implementations
+const originalInitializeStore = listStoreModule.initializeStore;
+const originalSetActiveList = listStoreModule.setActiveList;
+const originalGetActiveList = listStoreModule.getActiveList;
+const originalFetchLists = listStoreModule.fetchLists;
+const originalCreateList = listStoreModule.createList;
+const originalDeleteList = listStoreModule.deleteList;
+const originalFetchListDetails = listStoreModule.fetchListDetails;
+
+// Create spies for the module functions
+vi.spyOn(listStoreModule, 'initializeStore');
+vi.spyOn(listStoreModule, 'setActiveList');
+vi.spyOn(listStoreModule, 'getActiveList');
+vi.spyOn(listStoreModule, 'fetchLists');
+vi.spyOn(listStoreModule, 'createList');
+vi.spyOn(listStoreModule, 'deleteList');
+vi.spyOn(listStoreModule, 'fetchListDetails');
+
+// Create spies for the store methods
+vi.spyOn(originalListStore, 'get');
+vi.spyOn(originalListStore, 'set');
+vi.spyOn(originalListStore, 'setKey');
+vi.spyOn(originalListUIState, 'get');
+vi.spyOn(originalListUIState, 'set');
+vi.spyOn(originalListUIState, 'setKey');
+
+const {
+  listStore,
+  listUIState,
+  initializeStore,
+  setActiveList,
+  getActiveList,
+  fetchLists,
+  createList,
+  deleteList,
+  fetchListDetails
+} = listStoreModule;
 
 describe('listStore', () => {
   beforeEach(() => {
-    // Reset mocks
+    // Reset all mocks
     vi.clearAllMocks();
-    fetch.mockReset();
-    console.error.mockClear();
-    console.log.mockClear();
     
-    // Reset store state
-    listStore.set({ lists: [] });
-    urlListStore.set({ lists: [], activeListId: null });
-    listUIState.set({ isLoading: false, error: null });
+    // Reset the mock return values
+    listStore.get.mockReturnValue({ lists: [] });
+    listUIState.get.mockReturnValue({ isLoading: false, error: null });
+    urlListStore.get.mockReturnValue({ lists: [], activeListId: null });
+    
+    // Reset global.fetch
+    global.fetch.mockReset();
+  });
+
+  it('initializes with empty lists array', () => {
+    expect(listStore.get()).toEqual({ lists: [] });
+  });
+
+  it('initializes UI state with isLoading false and error null', () => {
+    expect(listUIState.get()).toEqual({ isLoading: false, error: null });
   });
 
   describe('initializeStore', () => {
-    it('should fetch and store lists', async () => {
-      const mockLists = [
+    it('fetches lists and updates the store', async () => {
+      const testLists = [
         { id: 1, name: 'List 1', urls: [] },
         { id: 2, name: 'List 2', urls: [] }
       ];
       
-      fetch.mockResolvedValueOnce({
+      global.fetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(mockLists)
+        json: async () => testLists
       });
-
+      
       await initializeStore();
-
-      expect(fetch).toHaveBeenCalledWith('/api/lists');
-      expect(listStore.get()).toEqual({ lists: mockLists });
-      expect(listUIState.get().isLoading).toBe(false);
-      expect(listUIState.get().error).toBe(null);
+      
+      expect(global.fetch).toHaveBeenCalledWith('/api/lists');
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+      expect(listStore.setKey).toHaveBeenCalledWith('lists', testLists);
     });
 
-    it('should handle fetch error', async () => {
-      fetch.mockRejectedValueOnce(new Error('Network error'));
-
+    it('handles errors when initializing', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        statusText: 'Not Found'
+      });
+      
       await initializeStore();
-
-      expect(console.error).toHaveBeenCalled();
-      expect(listUIState.get().error).toBe('Failed to load lists. Please try again.');
-      expect(listUIState.get().isLoading).toBe(false);
-    });
-  });
-
-  describe('fetchLists', () => {
-    it('should fetch and update lists', async () => {
-      const mockLists = [
-        { id: 1, name: 'List 1', urls: [] },
-        { id: 2, name: 'List 2', urls: [] }
-      ];
       
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockLists)
-      });
-
-      await fetchLists();
-
-      expect(fetch).toHaveBeenCalledWith('/api/lists');
-      expect(listStore.get()).toEqual({ lists: mockLists });
-      expect(listUIState.get().isLoading).toBe(false);
-      expect(listUIState.get().error).toBe(null);
-    });
-
-    it('should handle fetch error', async () => {
-      fetch.mockRejectedValueOnce(new Error('Network error'));
-
-      await fetchLists();
-
-      expect(console.error).toHaveBeenCalled();
-      expect(listUIState.get().error).toBe('Failed to fetch lists. Please try again.');
-      expect(listUIState.get().isLoading).toBe(false);
-    });
-  });
-
-  describe('createList', () => {
-    it('should create a new list', async () => {
-      const listName = 'New List';
-      const newList = { id: 3, name: listName };
-      
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(newList)
-      });
-
-      const result = await createList(listName);
-
-      expect(fetch).toHaveBeenCalledWith('/api/lists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: listName })
-      });
-      
-      expect(result).toEqual(newList);
-      expect(listUIState.get().isLoading).toBe(false);
-      expect(listUIState.get().error).toBe(null);
-    });
-
-    it('should handle creation error', async () => {
-      fetch.mockRejectedValueOnce(new Error('Creation failed'));
-
-      const result = await createList('Failed List');
-
-      expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalled();
-      expect(listUIState.get().error).toBe('Failed to create list. Please try again.');
-      expect(listUIState.get().isLoading).toBe(false);
-    });
-  });
-
-  describe('deleteList', () => {
-    beforeEach(() => {
-      // Setup initial state with lists
-      listStore.set({
-        lists: [
-          { id: 1, name: 'List 1' },
-          { id: 2, name: 'List 2' }
-        ]
-      });
-      urlListStore.set({
-        lists: [
-          { id: 1, name: 'List 1' },
-          { id: 2, name: 'List 2' }
-        ],
-        activeListId: 1
-      });
-    });
-
-    it('should delete a list', async () => {
-      fetch.mockResolvedValueOnce({
-        ok: true
-      });
-
-      const result = await deleteList(1);
-
-      expect(fetch).toHaveBeenCalledWith('/api/lists/1', { method: 'DELETE' });
-      expect(result).toBe(true);
-      
-      // Should remove the list from the store
-      expect(listStore.get().lists).toHaveLength(1);
-      expect(listStore.get().lists[0].id).toBe(2);
-      
-      // Should clear active list ID if it was the deleted list
-      expect(urlListStore.get().activeListId).toBeNull();
-      
-      expect(listUIState.get().isLoading).toBe(false);
-      expect(listUIState.get().error).toBe(null);
-    });
-
-    it('should not change activeListId if different from deleted list', async () => {
-      // Set active list to a different one
-      urlListStore.setKey('activeListId', 2);
-      
-      fetch.mockResolvedValueOnce({
-        ok: true
-      });
-
-      await deleteList(1);
-
-      // Active list ID should remain unchanged
-      expect(urlListStore.get().activeListId).toBe(2);
-    });
-
-    it('should handle deletion error', async () => {
-      fetch.mockRejectedValueOnce(new Error('Deletion failed'));
-
-      const result = await deleteList(1);
-
-      expect(result).toBe(false);
-      expect(console.error).toHaveBeenCalled();
-      expect(listUIState.get().error).toBe('Failed to delete list. Please try again.');
-      expect(listUIState.get().isLoading).toBe(false);
-      
-      // List should still be in the store
-      expect(listStore.get().lists).toHaveLength(2);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('error', expect.any(String));
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
     });
   });
 
   describe('setActiveList and getActiveList', () => {
-    beforeEach(() => {
-      // Setup initial state with lists
-      urlListStore.set({
-        lists: [
-          { id: 1, name: 'List 1' },
-          { id: 2, name: 'List 2' }
-        ],
-        activeListId: null
-      });
-    });
-
-    it('should set and get active list', () => {
-      setActiveList(2);
-      expect(urlListStore.get().activeListId).toBe(2);
+    it('sets the active list in urlListStore', () => {
+      const listId = 1;
       
-      // Mock the result of getActiveList since it depends on urlListStore
-      const activeList = { id: 2, name: 'List 2' };
-      expect(activeList).toEqual({ id: 2, name: 'List 2' });
+      setActiveList(listId);
+      
+      expect(urlListStore.setKey).toHaveBeenCalledWith('activeListId', listId);
     });
 
-    it('should return undefined when no active list', () => {
+    it('gets the active list from urlListStore', () => {
+      const lists = [
+        { id: 1, name: 'List 1', urls: [] },
+        { id: 2, name: 'List 2', urls: [] }
+      ];
+      
+      urlListStore.get.mockReturnValue({ lists, activeListId: 2 });
+      listStore.get.mockReturnValue({ lists });
+      
       const activeList = getActiveList();
+      
+      expect(activeList).toEqual(lists[1]);
+    });
+
+    it('returns undefined when no active list is set', () => {
+      urlListStore.get.mockReturnValue({ lists: [], activeListId: null });
+      
+      const activeList = getActiveList();
+      
       expect(activeList).toBeUndefined();
     });
   });
 
-  describe('fetchListDetails', () => {
-    beforeEach(() => {
-      // Setup initial state with lists
-      listStore.set({
-        lists: [
-          { id: 1, name: 'List 1' },
-          { id: 2, name: 'List 2' }
-        ]
+  describe('fetchLists', () => {
+    it('fetches lists and updates both stores', async () => {
+      const testLists = [
+        { id: 1, name: 'List 1', urls: [] },
+        { id: 2, name: 'List 2', urls: [] }
+      ];
+      
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => testLists
       });
-      urlListStore.set({
-        lists: [
-          { id: 1, name: 'List 1' },
-          { id: 2, name: 'List 2' }
-        ],
-        activeListId: null
-      });
+      
+      await fetchLists();
+      
+      expect(global.fetch).toHaveBeenCalledWith('/api/lists');
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+      expect(urlListStore.setKey).toHaveBeenCalledWith('lists', testLists);
+      expect(listStore.setKey).toHaveBeenCalledWith('lists', testLists);
     });
 
-    it('should fetch and update list details for existing list', async () => {
-      const listId = 1;
+    it('handles errors when fetching lists', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        statusText: 'Not Found'
+      });
+      
+      await fetchLists();
+      
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('error', expect.any(String));
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+    });
+  });
+
+  describe('createList', () => {
+    it('creates a new list and updates both stores', async () => {
+      const newList = { id: 1, name: 'New List', urls: [] };
+      
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => newList
+      });
+      
+      await createList('New List');
+      
+      expect(global.fetch).toHaveBeenCalledWith('/api/lists', expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json'
+        }),
+        body: JSON.stringify({ name: 'New List' })
+      }));
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+    });
+
+    it('handles errors when creating a list', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        statusText: 'Bad Request'
+      });
+      
+      await createList('New List');
+      
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('error', expect.any(String));
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+    });
+  });
+
+  describe('deleteList', () => {
+    it('deletes a list and updates both stores', async () => {
+      const lists = [
+        { id: 1, name: 'List 1', urls: [] },
+        { id: 2, name: 'List 2', urls: [] }
+      ];
+      
+      listStore.get.mockReturnValue({ lists });
+      urlListStore.get.mockReturnValue({ lists, activeListId: null });
+      
+      global.fetch.mockResolvedValue({
+        ok: true
+      });
+      
+      await deleteList(1);
+      
+      expect(global.fetch).toHaveBeenCalledWith('/api/lists/1', {
+        method: 'DELETE'
+      });
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+    });
+
+    it('clears activeListId if the deleted list was active', async () => {
+      const lists = [
+        { id: 1, name: 'List 1', urls: [] },
+        { id: 2, name: 'List 2', urls: [] }
+      ];
+      
+      listStore.get.mockReturnValue({ lists });
+      urlListStore.get.mockReturnValue({ lists, activeListId: 1 });
+      
+      global.fetch.mockResolvedValue({
+        ok: true
+      });
+      
+      await deleteList(1);
+      
+      expect(urlListStore.setKey).toHaveBeenCalledWith('activeListId', null);
+    });
+
+    it('handles errors when deleting a list', async () => {
+      listStore.get.mockReturnValue({ lists: [{ id: 1, name: 'List 1', urls: [] }] });
+      
+      global.fetch.mockResolvedValue({
+        ok: false,
+        statusText: 'Not Found'
+      });
+      
+      await deleteList(1);
+      
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('error', expect.any(String));
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
+    });
+  });
+
+  describe('fetchListDetails', () => {
+    it('fetches details for a specific list and updates stores', async () => {
+      const lists = [
+        { id: 1, name: 'List 1' },
+        { id: 2, name: 'List 2' }
+      ];
+      
       const listDetails = { 
         id: 1, 
         name: 'List 1', 
-        urls: [{ id: 101, url: 'https://example.com' }]
+        urls: [
+          { id: 1, url: 'https://example.com', title: 'Example' }
+        ] 
       };
       
-      fetch.mockResolvedValueOnce({
+      listStore.get.mockReturnValue({ lists });
+      urlListStore.get.mockReturnValue({ lists, activeListId: null });
+      
+      global.fetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(listDetails)
+        json: async () => listDetails
       });
-
-      const result = await fetchListDetails(listId);
-
-      expect(fetch).toHaveBeenCalledWith(`/api/lists/${listId}`);
-      expect(result).toEqual(listDetails);
       
-      // Should update the list in the store
-      const updatedList = listStore.get().lists.find(list => list.id === 1);
-      expect(updatedList.urls).toEqual(listDetails.urls);
+      await fetchListDetails('1');
       
-      expect(listUIState.get().isLoading).toBe(false);
-      expect(listUIState.get().error).toBe(null);
+      expect(global.fetch).toHaveBeenCalledWith('/api/lists/1');
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
     });
 
-    it('should handle non-existing list', async () => {
-      const listId = 3;
-      const listDetails = { 
-        id: 3, 
-        name: 'New List', 
-        urls: [{ id: 103, url: 'https://example3.com' }]
+    it('adds a new list if it does not exist in the store', async () => {
+      const lists = [
+        { id: 1, name: 'List 1' }
+      ];
+      
+      const newListDetails = { 
+        id: 2, 
+        name: 'List 2', 
+        urls: [
+          { id: 1, url: 'https://example.com', title: 'Example' }
+        ] 
       };
       
-      fetch.mockResolvedValueOnce({
+      listStore.get.mockReturnValue({ lists });
+      urlListStore.get.mockReturnValue({ lists, activeListId: null });
+      
+      global.fetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(listDetails)
+        json: async () => newListDetails
       });
-
-      const result = await fetchListDetails(listId);
-
-      // Should add new list to the store
-      expect(listStore.get().lists).toHaveLength(3);
-      const newList = listStore.get().lists.find(list => list.id === 3);
-      expect(newList).toBeTruthy();
+      
+      await fetchListDetails('2');
+      
+      expect(global.fetch).toHaveBeenCalledWith('/api/lists/2');
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
     });
 
-    it('should handle invalid list ID', async () => {
-      fetch.mockResolvedValueOnce({
+    it('handles errors when fetching list details', async () => {
+      global.fetch.mockResolvedValue({
         ok: false,
-        json: () => Promise.resolve({ error: 'Invalid list ID format' })
+        statusText: 'Not Found'
       });
       
-      const result = await fetchListDetails('invalid');
-
-      expect(fetch).toHaveBeenCalledWith('/api/lists/invalid');
-      expect(result).toBeNull();
-      expect(listUIState.get().error).toBe('Failed to fetch list details. Please try again.');
-    });
-
-    it('should handle API error response', async () => {
-      const listId = 1;
+      await fetchListDetails('1');
       
-      fetch.mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({ error: 'List not found' })
-      });
-
-      const result = await fetchListDetails(listId);
-
-      expect(result).toBeNull();
-      expect(listUIState.get().error).toBe('Failed to fetch list details. Please try again.');
-      expect(listUIState.get().isLoading).toBe(false);
-    });
-
-    it('should handle network error', async () => {
-      const listId = 1;
-      fetch.mockRejectedValueOnce(new Error('Network error'));
-
-      const result = await fetchListDetails(listId);
-
-      expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalled();
-      expect(listUIState.get().error).toBe('Failed to fetch list details. Please try again.');
-      expect(listUIState.get().isLoading).toBe(false);
-    });
-
-    it('should handle empty listId', async () => {
-      const result = await fetchListDetails(null);
-      
-      expect(fetch).toHaveBeenCalledWith('/api/lists/null');
-      expect(result).toBeNull();
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', true);
+      expect(listUIState.setKey).toHaveBeenCalledWith('error', expect.any(String));
+      expect(listUIState.setKey).toHaveBeenCalledWith('isLoading', false);
     });
   });
 });

@@ -1,160 +1,182 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import AutomaticUrlGeneration from './AutomaticUrlGeneration';
+import * as nanostores from '@nanostores/react';
 
-// Mock variables to prevent reference errors
-const listStoreMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockLists: [],
-  mockActiveListId: null
-};
+// Mock the imported modules
+vi.mock('../../../stores/lists', () => ({
+  listStore: {
+    subscribe: vi.fn(),
+  },
+  listUIState: {
+    subscribe: vi.fn(),
+  },
+  updateCustomUrl: vi.fn().mockResolvedValue(true)
+}));
 
-const listUIStateMock = {
-  get: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  mockIsLoading: false,
-  mockError: null
-};
+vi.mock('../../../utils/urlGeneration', () => ({
+  generateUrlSlug: vi.fn().mockReturnValue('test-generated-url'),
+  validateCustomUrl: vi.fn().mockReturnValue(null) // No error by default
+}));
 
-const mockUpdateCustomUrl = vi.fn();
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn()
+}));
 
-// Mock the stores module
-vi.mock('../../../stores/lists', () => {
-  return {
-    listStore: listStoreMock,
-    listUIState: listUIStateMock,
-    updateCustomUrl: mockUpdateCustomUrl
-  };
+// Import after mocking
+import { listStore, listUIState, updateCustomUrl } from '../../../stores/lists';
+import { generateUrlSlug, validateCustomUrl } from '../../../utils/urlGeneration';
+
+// Mock window.location.origin
+Object.defineProperty(window, 'location', {
+  value: {
+    origin: 'https://example.com'
+  },
+  writable: true
 });
 
-// Mock the nanostores/react module
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store === listStoreMock) {
-      return { 
-        lists: listStoreMock.mockLists, 
-        activeListId: listStoreMock.mockActiveListId 
-      };
-    }
-    if (store === listUIStateMock) {
-      return { 
-        isLoading: listUIStateMock.mockIsLoading, 
-        error: listUIStateMock.mockError 
-      };
-    }
-    return {};
-  }
-}));
-
-// Mock the utility functions
-vi.mock('../../../utils/urlGeneration', () => ({
-  generateUrlSlug: () => 'auto-generated-slug',
-  validateCustomUrl: (url) => url.length >= 3
-}));
-
 describe('AutomaticUrlGeneration', () => {
-  const mockList = {
-    id: '123',
-    name: 'Test List',
-    customUrl: ''
-  };
-
   beforeEach(() => {
-    // Reset mock state for stores
-    listStoreMock.mockLists = [mockList];
-    listStoreMock.mockActiveListId = '123';
-    listUIStateMock.mockIsLoading = false;
-    listUIStateMock.mockError = null;
-    
-    // Reset mocks
     vi.clearAllMocks();
-  });
-
-  it('renders the automatic URL generation component', () => {
-    render(<AutomaticUrlGeneration listId="123" />);
     
-    expect(screen.getByText('Generate Sharing URL')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /generate/i })).toBeInTheDocument();
-  });
-
-  it('generates a URL slug when button is clicked', async () => {
-    mockUpdateCustomUrl.mockResolvedValueOnce(true);
-    
-    render(<AutomaticUrlGeneration listId="123" />);
-    
-    const generateButton = screen.getByRole('button', { name: /generate/i });
-    fireEvent.click(generateButton);
-    
-    expect(mockUpdateCustomUrl).toHaveBeenCalledWith('123', 'auto-generated-slug');
-    
-    // Should show success message
-    await waitFor(() => {
-      expect(screen.getByText('URL generated successfully')).toBeInTheDocument();
+    // Setup default mocks
+    nanostores.useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return {
+          lists: [{ id: '123', name: 'Test List' }],
+          activeListId: '123'
+        };
+      }
+      if (store === listUIState) {
+        return {
+          isLoading: false,
+          error: null
+        };
+      }
+      return {};
     });
   });
-
-  it('shows loading state when generating URL', async () => {
-    // Setup a promise that doesn't resolve immediately
-    let resolvePromise;
-    const updatePromise = new Promise(resolve => { resolvePromise = resolve; });
-    mockUpdateCustomUrl.mockReturnValueOnce(updatePromise);
-    
+  
+  it('renders the Custom URL card', () => {
     render(<AutomaticUrlGeneration listId="123" />);
     
-    const generateButton = screen.getByRole('button', { name: /generate/i });
-    fireEvent.click(generateButton);
+    // Look for the card title specifically using the heading role
+    const cardTitle = screen.getByRole('heading', { name: /Custom URL/i });
+    expect(cardTitle).toBeInTheDocument();
     
-    // Button should be in loading state
-    expect(generateButton).toBeDisabled();
-    expect(generateButton.querySelector('.animate-spin')).toBeInTheDocument();
+    // Check for Generate button
+    const generateButton = screen.getByRole('button', { name: /Generate/i });
+    expect(generateButton).toBeInTheDocument();
     
-    // Resolve the promise
-    resolvePromise(true);
-    await updatePromise;
+    // Check for Save button
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    expect(saveButton).toBeInTheDocument();
   });
-
-  it('handles errors when generating URL', async () => {
-    mockUpdateCustomUrl.mockRejectedValueOnce(new Error('Failed to generate URL'));
+  
+  it('generates a URL when the Generate button is clicked', () => {
+    render(<AutomaticUrlGeneration listId="123" />);
+    
+    const generateButton = screen.getByRole('button', { name: /Generate/i });
+    fireEvent.click(generateButton);
+    
+    // Check that the input now has the generated value
+    const input = screen.getByLabelText(/Custom URL/i);
+    expect(input.value).toBe('test-generated-url');
+    
+    // Verify feedback message shown
+    expect(screen.getByText(/URL generated/i)).toBeInTheDocument();
+  });
+  
+  it('validates and saves a custom URL', async () => {
+    render(<AutomaticUrlGeneration listId="123" />);
+    
+    // First generate a URL
+    const generateButton = screen.getByRole('button', { name: /Generate/i });
+    fireEvent.click(generateButton);
+    
+    // Then save it
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveButton);
+    
+    // Verify the updateCustomUrl function was called
+    expect(updateCustomUrl).toHaveBeenCalledWith('123', 'test-generated-url');
+    
+    // Wait for success message
+    const successMessage = await screen.findByText(/Custom URL saved successfully/i);
+    expect(successMessage).toBeInTheDocument();
+  });
+  
+  it('shows validation error when URL is invalid', () => {
+    // Override the validation mock to return an error
+    validateCustomUrl.mockReturnValueOnce('URL must be at least 3 characters');
     
     render(<AutomaticUrlGeneration listId="123" />);
     
-    const generateButton = screen.getByRole('button', { name: /generate/i });
-    fireEvent.click(generateButton);
+    // Set a custom URL by typing
+    const input = screen.getByLabelText(/Custom URL/i);
+    fireEvent.change(input, { target: { value: 'ab' } });
     
-    // Should show error message
-    await waitFor(() => {
-      expect(screen.getByText('Failed to generate URL')).toBeInTheDocument();
+    // Try to save
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    fireEvent.click(saveButton);
+    
+    // Check for error message
+    expect(screen.getByText(/URL must be at least 3 characters/i)).toBeInTheDocument();
+    
+    // Verify updateCustomUrl was not called
+    expect(updateCustomUrl).not.toHaveBeenCalled();
+  });
+  
+  it('shows loading state during save operation', () => {
+    // Mock loading state
+    nanostores.useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return {
+          lists: [{ id: '123', name: 'Test List' }],
+          activeListId: '123'
+        };
+      }
+      if (store === listUIState) {
+        return {
+          isLoading: true,
+          error: null
+        };
+      }
+      return {};
     });
-  });
-
-  it('displays the generated URL when list already has a customUrl', () => {
-    const listWithCustomUrl = {
-      id: '123',
-      name: 'Test List',
-      customUrl: 'my-custom-url'
-    };
-    
-    listStoreMock.mockLists = [listWithCustomUrl];
     
     render(<AutomaticUrlGeneration listId="123" />);
     
-    expect(screen.getByText(/current url/i)).toBeInTheDocument();
-    expect(screen.getByText('my-custom-url')).toBeInTheDocument();
+    // Check that buttons are in loading state
+    const generateButton = screen.getByRole('button', { name: /Generate/i });
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    
+    expect(generateButton).toHaveAttribute('disabled');
+    expect(saveButton).toHaveAttribute('disabled');
   });
-
-  it('does not display current URL section when no custom URL exists', () => {
+  
+  it('shows error messages from the store', () => {
+    // Mock error state
+    nanostores.useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return {
+          lists: [{ id: '123', name: 'Test List' }],
+          activeListId: '123'
+        };
+      }
+      if (store === listUIState) {
+        return {
+          isLoading: false,
+          error: 'Failed to update list'
+        };
+      }
+      return {};
+    });
+    
     render(<AutomaticUrlGeneration listId="123" />);
     
-    expect(screen.queryByText(/current url/i)).not.toBeInTheDocument();
-  });
-
-  it('returns null when list is not found', () => {
-    listStoreMock.mockLists = [];
-    
-    const { container } = render(<AutomaticUrlGeneration listId="999" />);
-    expect(container.firstChild).toBeNull();
+    // Check that error is displayed
+    expect(screen.getByText('Failed to update list')).toBeInTheDocument();
   });
 });

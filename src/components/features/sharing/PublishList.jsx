@@ -7,13 +7,13 @@ import Card from '../../ui/Card';
 
 export default function PublishList({ listId }) {
   const [feedback, setFeedback] = useState('');
-  const { lists, activeListId } = useStore(listStore);
+  const { lists } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
   
-  const activeList = lists.find(list => list.id === activeListId);
+  const currentList = lists.find(list => list.id === listId);
 
   const handlePublish = async () => {
-    if (!activeList) return;
+    if (!currentList) return;
     
     const success = await publishList(listId);
     if (success) {
@@ -22,7 +22,7 @@ export default function PublishList({ listId }) {
     }
   };
 
-  if (!activeList) {
+  if (!currentList) {
     return null;
   }
 
@@ -35,8 +35,8 @@ export default function PublishList({ listId }) {
       <div className="space-y-4">
         <div>
           <p className="text-sm text-gray-500">
-            {activeList.isPublished 
-              ? `Published on ${new Date(activeList.publishedAt).toLocaleDateString()}`
+            {currentList.isPublished 
+              ? `Published on ${new Date(currentList.publishedAt).toLocaleDateString()}`
               : 'Your list is currently private'}
           </p>
         </div>
@@ -46,14 +46,14 @@ export default function PublishList({ listId }) {
           variant="primary"
           size="md"
           loading={isLoading}
-          disabled={activeList.isPublished}
+          disabled={currentList.isPublished}
           icon={
             <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           }
         >
-          {activeList.isPublished ? 'Published' : 'Publish List'}
+          {currentList.isPublished ? 'Published' : 'Publish List'}
         </Button>
 
         {feedback && !error && (
