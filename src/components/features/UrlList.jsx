@@ -15,6 +15,7 @@ export default function UrlList({ listId }) {
 
   // Create a reusable function to fetch list details
   const refreshListData = useCallback((id) => {
+    // The ID is now guaranteed to be numeric from [id].astro
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
     if (!isNaN(numericId) && isMounted.current) {
       return fetchListDetails(numericId).catch(err => {
@@ -37,8 +38,8 @@ export default function UrlList({ listId }) {
     }
 
     if (listId) {
-      // First set the active list
-      setActiveList(parseInt(listId));
+      // First set the active list (listId is now guaranteed to be numeric)
+      setActiveList(typeof listId === 'string' ? parseInt(listId) : listId);
       
       // Then fetch the details for this list
       let fetchPromise = refreshListData(listId);

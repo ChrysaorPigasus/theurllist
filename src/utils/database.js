@@ -228,10 +228,18 @@ export async function deleteUrl(urlId) {
 export async function getListById(id) {
   ensureServerSide();
   try {
+    // Validate id is a number
+    const numericId = Number(id);
+    if (isNaN(numericId)) {
+      logger.error(`Invalid list ID: ${id}`);
+      return null;
+    }
+
+
     const [list] = await sql`
       SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
       FROM lists l
-      WHERE l.id = ${id}
+      WHERE l.id = ${numericId}
     `;
     
     if (!list) {
@@ -242,7 +250,7 @@ export async function getListById(id) {
     const links = await sql`
       SELECT id, name, title, description, url, image, list_id, created_at
       FROM links 
-      WHERE list_id = ${id}
+      WHERE list_id = ${numericId}
       ORDER BY created_at DESC
     `;
     
@@ -253,6 +261,38 @@ export async function getListById(id) {
     };
   } catch (error) {
     logger.error(error, `Failed to retrieve list with ID ${id}`);
+    throw error;
+  }
+}
+
+export async function getListBySlug(slug) {
+  ensureServerSide();
+  try {
+    const [list] = await sql`
+      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+      FROM lists l
+      WHERE l.slug = ${slug} AND l.published = true
+    `;
+    
+    if (!list) {
+      return null;
+    }
+    
+    // Get the associated URLs/links for this list
+    const links = await sql`
+      SELECT id, name, title, description, url, image, list_id, created_at
+      FROM links 
+      WHERE list_id = ${list.id}
+      ORDER BY created_at DESC
+    `;
+    
+    // Return the list with its links included
+    return {
+      ...list,
+      urls: links || []
+    };
+  } catch (error) {
+    logger.error(error, `Failed to retrieve list with slug ${slug}`);
     throw error;
   }
 }

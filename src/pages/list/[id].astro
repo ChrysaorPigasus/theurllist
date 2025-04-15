@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getListById } from '../../utils/database';
+import { getListById, getListBySlug } from '../../utils/database';
 import UrlList from '../../components/features/UrlList';
 
 const { id } = Astro.params;
@@ -12,7 +12,17 @@ try {
     error = 'List ID is required';
     return;
   }
-  list = await getListById(parseInt(id));
+  
+  // First, try to parse the ID as a number for backward compatibility
+  const parsedId = parseInt(id);
+  if (!isNaN(parsedId)) {
+    // If it's a valid number, try to get the list by ID
+    list = await getListById(parsedId);
+  } else {
+    // If it's not a valid number, try to get the list by slug
+    list = await getListBySlug(id);
+  }
+  
   if (!list) {
     error = 'List not found';
   }
@@ -48,8 +58,8 @@ try {
           </div>
         </div>
       </div>
-    ) : id ? (
-      <UrlList client:load listId={parseInt(id)} />
+    ) : list ? (
+      <UrlList client:load listId={list.id} />
     ) : null}
   </main>
 </Layout>

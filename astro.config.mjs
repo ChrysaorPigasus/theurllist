@@ -17,6 +17,7 @@ export default defineConfig({
   },
   vite: {
     build: {
+      sourcemap: 'hidden',
       rollupOptions: {
         output: {
           manualChunks: {
