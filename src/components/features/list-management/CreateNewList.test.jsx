@@ -1,26 +1,47 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import CreateNewList from './CreateNewList';
-import { createList } from '../../../stores/lists';
 
-// Import our mocks
-import { mockListStore, mockListUIState, mockCreateList, resetMocks } from '../../../test/storeMocks';
+// Mock variables to prevent reference errors
+const listStoreMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockLists: []
+};
+
+const listUIStateMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockIsLoading: false,
+  mockError: null
+};
+
+const mockCreateList = vi.fn();
 
 // Mock the stores module
-vi.mock('../../../stores/lists', () => ({
-  listStore: mockListStore,
-  listUIState: mockListUIState,
-  createList: mockCreateList
-}));
+vi.mock('../../../stores/lists', () => {
+  return {
+    listStore: listStoreMock,
+    listUIState: listUIStateMock,
+    createList: mockCreateList
+  };
+});
 
 // Mock the nanostores/react module
 vi.mock('@nanostores/react', () => ({
   useStore: (store) => {
-    if (store === mockListStore) {
-      return { lists: [], activeListId: null };
+    if (store === listStoreMock) {
+      return { 
+        lists: listStoreMock.mockLists
+      };
     }
-    if (store === mockListUIState) {
-      return { isLoading: false, error: null };
+    if (store === listUIStateMock) {
+      return { 
+        isLoading: listUIStateMock.mockIsLoading, 
+        error: listUIStateMock.mockError 
+      };
     }
     return {};
   }
@@ -28,103 +49,131 @@ vi.mock('@nanostores/react', () => ({
 
 describe('CreateNewList', () => {
   beforeEach(() => {
-    resetMocks();
+    // Reset mock state for stores
+    listStoreMock.mockLists = [];
+    listUIStateMock.mockIsLoading = false;
+    listUIStateMock.mockError = null;
+    
+    // Reset mocks
+    vi.clearAllMocks();
   });
 
   it('renders the create list form', () => {
     render(<CreateNewList />);
-    expect(screen.getByLabelText(/list name/i)).toBeInTheDocument();
+    
+    expect(screen.getByText('Create New List')).toBeInTheDocument();
+    expect(screen.getByLabelText('List Name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Description')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /create list/i })).toBeInTheDocument();
   });
 
-  it('handles list creation successfully', async () => {
-    // Mock the useStore implementation for this test
-    const { useStore } = require('@nanostores/react');
-    
-    // First call - initial render state
-    useStore.mockImplementationOnce((store) => {
-      if (store === mockListStore) {
-        return { lists: [], activeListId: null };
-      }
-      if (store === mockListUIState) {
-        return { isLoading: false, error: null };
-      }
-      return {};
-    });
-    
-    // Second call - success state after creating list
-    useStore.mockImplementationOnce((store) => {
-      if (store === mockListStore) {
-        return { lists: [{ id: 'mock-id', name: 'Test List' }], activeListId: null };
-      }
-      if (store === mockListUIState) {
-        return { isLoading: false, error: null };
-      }
-      return {};
-    });
-    
-    // Set up the createList mock to return success
-    mockCreateList.mockResolvedValueOnce({ id: 'mock-id', name: 'Test List' });
+  it('submits the form with list data', async () => {
+    mockCreateList.mockResolvedValueOnce({ id: 'new-list-id' });
     
     render(<CreateNewList />);
     
-    const input = screen.getByLabelText(/list name/i);
-    const button = screen.getByRole('button', { name: /create list/i });
-
-    fireEvent.change(input, { target: { value: 'Test List' } });
-    fireEvent.click(button);
-
-    expect(mockCreateList).toHaveBeenCalledWith('Test List');
+    // Fill out the form
+    fireEvent.change(screen.getByLabelText('List Name'), {
+      target: { value: 'My Test List' }
+    });
+    
+    fireEvent.change(screen.getByLabelText('Description'), {
+      target: { value: 'This is a test list description' }
+    });
+    
+    // Submit the form
+    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
+    
+    // Check if createList was called with correct data
+    expect(mockCreateList).toHaveBeenCalledWith({
+      name: 'My Test List',
+      description: 'This is a test list description'
+    });
+    
+    // Should show success message
+    await waitFor(() => {
+      expect(screen.getByText('List created successfully!')).toBeInTheDocument();
+    });
   });
 
-  it('shows validation error for empty list name', async () => {
+  it('validates required fields', () => {
     render(<CreateNewList />);
     
-    const button = screen.getByRole('button', { name: /create list/i });
-    fireEvent.click(button);
+    // Submit empty form
+    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
     
-    // Validation should happen client-side, no need to wait
-    expect(screen.getByText(/cannot be empty/i)).toBeInTheDocument();
+    // Should show validation errors
+    expect(screen.getByText('Name is required')).toBeInTheDocument();
     expect(mockCreateList).not.toHaveBeenCalled();
   });
 
-  it('handles server errors gracefully', async () => {
-    // Mock the useStore implementation for this test
-    const { useStore } = require('@nanostores/react');
-    
-    // First call - initial render state
-    useStore.mockImplementationOnce((store) => {
-      if (store === mockListStore) {
-        return { lists: [], activeListId: null };
-      }
-      if (store === mockListUIState) {
-        return { isLoading: false, error: null };
-      }
-      return {};
-    });
-    
-    // Second call - error state after failed creation
-    useStore.mockImplementationOnce((store) => {
-      if (store === mockListStore) {
-        return { lists: [], activeListId: null };
-      }
-      if (store === mockListUIState) {
-        return { isLoading: false, error: 'Failed to create list. Please try again.' };
-      }
-      return {};
-    });
-    
-    // Set up the createList mock to simulate an error
-    mockCreateList.mockRejectedValueOnce(new Error('Server error'));
+  it('shows loading state when creating list', async () => {
+    // Setup a promise that doesn't resolve immediately
+    let resolvePromise;
+    const createPromise = new Promise(resolve => { resolvePromise = resolve; });
+    mockCreateList.mockReturnValueOnce(createPromise);
     
     render(<CreateNewList />);
     
-    const input = screen.getByLabelText(/list name/i);
-    const button = screen.getByRole('button', { name: /create list/i });
-
-    fireEvent.change(input, { target: { value: 'Test List' } });
-    fireEvent.click(button);
+    // Fill out the form
+    fireEvent.change(screen.getByLabelText('List Name'), {
+      target: { value: 'My Test List' }
+    });
     
-    expect(mockCreateList).toHaveBeenCalledWith('Test List');
+    // Submit the form
+    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
+    
+    // Button should be in loading state
+    const button = screen.getByRole('button', { name: /creating/i });
+    expect(button).toBeDisabled();
+    expect(button.querySelector('.animate-spin')).toBeInTheDocument();
+    
+    // Resolve the promise
+    resolvePromise({ id: 'new-list-id' });
+    await createPromise;
+  });
+
+  it('handles API errors gracefully', async () => {
+    mockCreateList.mockRejectedValueOnce(new Error('Failed to create list'));
+    
+    render(<CreateNewList />);
+    
+    // Fill out the form
+    fireEvent.change(screen.getByLabelText('List Name'), {
+      target: { value: 'My Test List' }
+    });
+    
+    // Submit the form
+    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
+    
+    // Should show error message
+    await waitFor(() => {
+      expect(screen.getByText('Failed to create list')).toBeInTheDocument();
+    });
+  });
+
+  it('resets the form after successful submission', async () => {
+    mockCreateList.mockResolvedValueOnce({ id: 'new-list-id' });
+    
+    render(<CreateNewList />);
+    
+    // Fill out the form
+    const nameInput = screen.getByLabelText('List Name');
+    const descInput = screen.getByLabelText('Description');
+    
+    fireEvent.change(nameInput, { target: { value: 'My Test List' } });
+    fireEvent.change(descInput, { target: { value: 'This is a test list description' } });
+    
+    // Submit the form
+    fireEvent.click(screen.getByRole('button', { name: /create list/i }));
+    
+    // Wait for submission to complete
+    await waitFor(() => {
+      expect(screen.getByText('List created successfully!')).toBeInTheDocument();
+    });
+    
+    // Form should be reset
+    expect(nameInput.value).toBe('');
+    expect(descInput.value).toBe('');
   });
 });

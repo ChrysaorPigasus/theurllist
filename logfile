@@ -368,3 +368,5 @@
 2025-04-15 10:34:13.005 CEST [15432] LOG:  checkpoint starting: end-of-recovery immediate wait
 2025-04-15 10:34:13.033 CEST [15432] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.006 s, total=0.033 s; sync files=2, longest=0.003 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B36680, redo lsn=0/1B36680
 2025-04-15 10:34:13.149 CEST [19496] LOG:  database system is ready to accept connections
+2025-04-15 12:07:26.268 CEST [15432] LOG:  checkpoint starting: time
+2025-04-15 12:07:26.749 CEST [15432] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.433 s, sync=0.012 s, total=0.483 s; sync files=5, longest=0.004 s, average=0.003 s; distance=5 kB, estimate=5 kB; lsn=0/1B37B98, redo lsn=0/1B37B40

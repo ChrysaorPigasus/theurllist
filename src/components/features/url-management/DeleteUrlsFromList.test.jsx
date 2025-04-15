@@ -1,42 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import DeleteUrlsFromList from './DeleteUrlsFromList';
-import { listStore, listUIState } from '../../../stores/lists';
 
-// Mock deleteUrl function
+// Mock variables to prevent reference errors
+const listStoreMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockLists: [],
+  mockActiveListId: null
+};
+
+const listUIStateMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockIsLoading: false,
+  mockError: null
+};
+
 const mockDeleteUrl = vi.fn();
-
-// Mock the @nanostores/react useStore hook
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store === listStore) {
-      return { lists: listStore.mockLists, activeListId: listStore.mockActiveListId };
-    }
-    if (store === listUIState) {
-      return { isLoading: listUIState.mockIsLoading, error: listUIState.mockError };
-    }
-    return {};
-  }
-}));
 
 // Mock the stores module
 vi.mock('../../../stores/lists', () => {
-  const listStoreMock = {
-    get: vi.fn(),
-    set: vi.fn(),
-    subscribe: vi.fn(),
-    mockLists: [],
-    mockActiveListId: null
-  };
-  
-  const listUIStateMock = {
-    get: vi.fn(),
-    set: vi.fn(),
-    subscribe: vi.fn(),
-    mockIsLoading: false,
-    mockError: null
-  };
-
   return {
     listStore: listStoreMock,
     listUIState: listUIStateMock,
@@ -44,98 +30,130 @@ vi.mock('../../../stores/lists', () => {
   };
 });
 
-describe('DeleteUrlsFromList', () => {
-  const mockUrls = [
-    { id: '1', url: 'https://example.com' },
-    { id: '2', url: 'https://test.com' }
-  ];
+// Mock the nanostores/react module
+vi.mock('@nanostores/react', () => ({
+  useStore: (store) => {
+    if (store === listStoreMock) {
+      return { 
+        lists: listStoreMock.mockLists, 
+        activeListId: listStoreMock.mockActiveListId 
+      };
+    }
+    if (store === listUIStateMock) {
+      return { 
+        isLoading: listUIStateMock.mockIsLoading, 
+        error: listUIStateMock.mockError 
+      };
+    }
+    return {};
+  }
+}));
 
+describe('DeleteUrlsFromList', () => {
   const mockList = {
     id: '123',
     name: 'Test List',
-    urls: mockUrls
+    urls: [
+      { id: 'url1', url: 'https://example.com', title: 'Example 1' },
+      { id: 'url2', url: 'https://example.org', title: 'Example 2' },
+    ]
   };
 
   beforeEach(() => {
     // Reset mock state for stores
-    listStore.mockLists = [mockList];
-    listStore.mockActiveListId = '123';
-    listUIState.mockIsLoading = false;
-    listUIState.mockError = null;
+    listStoreMock.mockLists = [mockList];
+    listStoreMock.mockActiveListId = '123';
+    listUIStateMock.mockIsLoading = false;
+    listUIStateMock.mockError = null;
     
     // Reset mocks
     vi.clearAllMocks();
   });
 
-  it('renders the list of URLs with delete buttons', () => {
+  it('renders delete buttons for each URL', () => {
     render(<DeleteUrlsFromList listId="123" />);
     
-    expect(screen.getByText('https://example.com')).toBeInTheDocument();
-    expect(screen.getByText('https://test.com')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /delete/i })).toHaveLength(2);
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    expect(deleteButtons).toHaveLength(2);
   });
 
-  it('shows loading state', () => {
-    listUIState.mockIsLoading = true;
-    
-    render(<DeleteUrlsFromList listId="123" />);
-    
-    expect(screen.getByTestId('spinner')).toBeInTheDocument();
-  });
-
-  it('shows empty state when no URLs exist', () => {
-    listStore.mockLists = [{ ...mockList, urls: [] }];
-    
-    render(<DeleteUrlsFromList listId="123" />);
-    
-    expect(screen.getByText(/no urls to delete/i)).toBeInTheDocument();
-    expect(screen.getByText(/add some urls to your list first/i)).toBeInTheDocument();
-  });
-
-  it('successfully deletes a URL', async () => {
-    mockDeleteUrl.mockResolvedValue(true);
+  it('deletes a URL when delete button is clicked', () => {
+    mockDeleteUrl.mockResolvedValueOnce(true);
     
     render(<DeleteUrlsFromList listId="123" />);
     
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     fireEvent.click(deleteButtons[0]);
-
-    await waitFor(() => {
-      expect(mockDeleteUrl).toHaveBeenCalledWith('1');
-    });
+    
+    expect(mockDeleteUrl).toHaveBeenCalledWith('123', 'url1');
   });
 
-  it('handles delete error gracefully', async () => {
-    mockDeleteUrl.mockRejectedValue(new Error('Failed to delete URL'));
+  it('shows loading state for specific URL when deleting', async () => {
+    // Setup a promise that doesn't resolve immediately
+    let resolvePromise;
+    const deletePromise = new Promise(resolve => { resolvePromise = resolve; });
+    mockDeleteUrl.mockReturnValueOnce(deletePromise);
     
     render(<DeleteUrlsFromList listId="123" />);
     
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     fireEvent.click(deleteButtons[0]);
-
-    // Just verify the delete function was called
-    expect(mockDeleteUrl).toHaveBeenCalledWith('1');
+    
+    // Check that specific button is in loading state
+    expect(deleteButtons[0]).toHaveAttribute('disabled');
+    expect(deleteButtons[0].querySelector('.animate-spin')).toBeInTheDocument();
+    
+    // Other button should still be clickable
+    expect(deleteButtons[1]).not.toHaveAttribute('disabled');
+    
+    // Resolve the promise
+    resolvePromise(true);
+    await deletePromise;
   });
 
-  it('disables delete buttons when loading', () => {
-    listUIState.mockIsLoading = true;
+  it('displays error message when deletion fails', async () => {
+    mockDeleteUrl.mockRejectedValueOnce(new Error('Failed to delete URL'));
     
     render(<DeleteUrlsFromList listId="123" />);
     
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    deleteButtons.forEach(button => {
-      expect(button).toBeDisabled();
-    });
+    fireEvent.click(deleteButtons[0]);
+    
+    expect(await screen.findByText('Failed to delete URL')).toBeInTheDocument();
   });
 
-  it('renders URLs as clickable links', () => {
+  it('shows an empty state when there are no URLs', () => {
+    const emptyList = {
+      id: '456',
+      name: 'Empty List',
+      urls: []
+    };
+    
+    listStoreMock.mockLists = [emptyList];
+    listStoreMock.mockActiveListId = '456';
+    
+    render(<DeleteUrlsFromList listId="456" />);
+    
+    expect(screen.getByText('No URLs')).toBeInTheDocument();
+    expect(screen.getByText('This list does not contain any URLs yet')).toBeInTheDocument();
+  });
+
+  it('shows success message after URL is deleted', async () => {
+    mockDeleteUrl.mockResolvedValueOnce(true);
+    
     render(<DeleteUrlsFromList listId="123" />);
     
-    const links = screen.getAllByRole('link');
-    expect(links).toHaveLength(2);
-    expect(links[0]).toHaveAttribute('href', 'https://example.com');
-    expect(links[1]).toHaveAttribute('href', 'https://test.com');
-    expect(links[0]).toHaveAttribute('target', '_blank');
-    expect(links[0]).toHaveAttribute('rel', 'noopener noreferrer');
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    fireEvent.click(deleteButtons[0]);
+    
+    expect(await screen.findByText('URL deleted successfully')).toBeInTheDocument();
+  });
+
+  it('returns null when list is not found', () => {
+    listStoreMock.mockLists = [];
+    listStoreMock.mockActiveListId = null;
+    
+    const { container } = render(<DeleteUrlsFromList listId="999" />);
+    expect(container.firstChild).toBeNull();
   });
 });

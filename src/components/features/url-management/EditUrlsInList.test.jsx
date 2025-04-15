@@ -1,42 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import EditUrlsInList from './EditUrlsInList';
-import { listStore, listUIState } from '../../../stores/lists';
 
-// Mock updateUrl function
+// Mock variables to prevent reference errors
+const listStoreMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockLists: [],
+  mockActiveListId: null
+};
+
+const listUIStateMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockIsLoading: false,
+  mockError: null
+};
+
 const mockUpdateUrl = vi.fn();
-
-// Mock the @nanostores/react useStore hook
-vi.mock('@nanostores/react', () => ({
-  useStore: (store) => {
-    if (store === listStore) {
-      return { lists: listStore.mockLists, activeListId: listStore.mockActiveListId };
-    }
-    if (store === listUIState) {
-      return { isLoading: listUIState.mockIsLoading, error: listUIState.mockError };
-    }
-    return {};
-  }
-}));
 
 // Mock the stores module
 vi.mock('../../../stores/lists', () => {
-  const listStoreMock = {
-    get: vi.fn(),
-    set: vi.fn(),
-    subscribe: vi.fn(),
-    mockLists: [],
-    mockActiveListId: null
-  };
-  
-  const listUIStateMock = {
-    get: vi.fn(),
-    set: vi.fn(),
-    subscribe: vi.fn(),
-    mockIsLoading: false,
-    mockError: null
-  };
-
   return {
     listStore: listStoreMock,
     listUIState: listUIStateMock,
@@ -44,168 +30,195 @@ vi.mock('../../../stores/lists', () => {
   };
 });
 
-describe('EditUrlsInList', () => {
-  const mockUrls = [
-    { id: '1', url: 'https://example.com', title: 'Example' },
-    { id: '2', url: 'https://test.com', title: '' }
-  ];
+// Mock the nanostores/react module
+vi.mock('@nanostores/react', () => ({
+  useStore: (store) => {
+    if (store === listStoreMock) {
+      return { 
+        lists: listStoreMock.mockLists, 
+        activeListId: listStoreMock.mockActiveListId 
+      };
+    }
+    if (store === listUIStateMock) {
+      return { 
+        isLoading: listUIStateMock.mockIsLoading, 
+        error: listUIStateMock.mockError 
+      };
+    }
+    return {};
+  }
+}));
 
+describe('EditUrlsInList', () => {
   const mockList = {
     id: '123',
     name: 'Test List',
-    urls: mockUrls
+    urls: [
+      { id: 'url1', url: 'https://example.com', title: 'Example 1' },
+      { id: 'url2', url: 'https://example.org', title: 'Example 2' },
+    ]
   };
 
   beforeEach(() => {
     // Reset mock state for stores
-    listStore.mockLists = [mockList];
-    listStore.mockActiveListId = '123';
-    listUIState.mockIsLoading = false;
-    listUIState.mockError = null;
+    listStoreMock.mockLists = [mockList];
+    listStoreMock.mockActiveListId = '123';
+    listUIStateMock.mockIsLoading = false;
+    listUIStateMock.mockError = null;
     
     // Reset mocks
     vi.clearAllMocks();
   });
 
-  it('renders the table of URLs', () => {
+  it('renders edit buttons for each URL', () => {
     render(<EditUrlsInList listId="123" />);
     
-    expect(screen.getByText('Example')).toBeInTheDocument();
-    expect(screen.getByText('https://example.com')).toBeInTheDocument();
-    expect(screen.getByText('https://test.com')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /edit/i })).toHaveLength(2);
+    const editButtons = screen.getAllByRole('button', { name: /edit/i });
+    expect(editButtons).toHaveLength(2);
   });
 
-  it('shows loading state', () => {
-    listUIState.mockIsLoading = true;
-    
-    render(<EditUrlsInList listId="123" />);
-    
-    expect(screen.getByTestId('spinner')).toBeInTheDocument();
-  });
-
-  it('shows empty state when no URLs exist', () => {
-    listStore.mockLists = [{ ...mockList, urls: [] }];
-    
-    render(<EditUrlsInList listId="123" />);
-    
-    expect(screen.getByText(/no urls to edit/i)).toBeInTheDocument();
-    expect(screen.getByText(/add some urls to your list first/i)).toBeInTheDocument();
-  });
-
-  it('enters edit mode when edit button is clicked', () => {
+  it('shows edit form when edit button is clicked', () => {
     render(<EditUrlsInList listId="123" />);
     
     const editButtons = screen.getAllByRole('button', { name: /edit/i });
     fireEvent.click(editButtons[0]);
-
-    expect(screen.getByDisplayValue('https://example.com')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Example')).toBeInTheDocument();
+    
+    // Check that edit form is displayed
+    expect(screen.getByLabelText('URL')).toHaveValue('https://example.com');
+    expect(screen.getByLabelText('Title')).toHaveValue('Example 1');
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
   });
 
-  it('updates URL and title fields in edit mode', () => {
-    render(<EditUrlsInList listId="123" />);
-    
-    // Enter edit mode
-    const editButtons = screen.getAllByRole('button', { name: /edit/i });
-    fireEvent.click(editButtons[0]);
-
-    // Update fields
-    const urlInput = screen.getByDisplayValue('https://example.com');
-    const titleInput = screen.getByDisplayValue('Example');
-
-    fireEvent.change(urlInput, { target: { value: 'https://newexample.com' } });
-    fireEvent.change(titleInput, { target: { value: 'New Example' } });
-
-    expect(screen.getByDisplayValue('https://newexample.com')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('New Example')).toBeInTheDocument();
-  });
-
-  it('handles successful URL update', async () => {
-    mockUpdateUrl.mockResolvedValue(true);
+  it('updates URL when form is submitted', async () => {
+    mockUpdateUrl.mockResolvedValueOnce(true);
     
     render(<EditUrlsInList listId="123" />);
     
-    // Enter edit mode
+    // Open edit form
     const editButtons = screen.getAllByRole('button', { name: /edit/i });
     fireEvent.click(editButtons[0]);
-
-    // Update URL and save
-    const urlInput = screen.getByDisplayValue('https://example.com');
-    fireEvent.change(urlInput, { target: { value: 'https://newexample.com' } });
     
+    // Modify URL and title
+    const urlInput = screen.getByLabelText('URL');
+    const titleInput = screen.getByLabelText('Title');
+    
+    fireEvent.change(urlInput, { target: { value: 'https://newexample.com' } });
+    fireEvent.change(titleInput, { target: { value: 'New Example Title' } });
+    
+    // Submit form
     const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
-
-    await waitFor(() => {
-      expect(mockUpdateUrl).toHaveBeenCalledWith('1', 'https://newexample.com', 'Example');
+    
+    expect(mockUpdateUrl).toHaveBeenCalledWith('123', 'url1', {
+      url: 'https://newexample.com',
+      title: 'New Example Title'
     });
+    
+    // Should show success message
+    expect(await screen.findByText('URL updated successfully')).toBeInTheDocument();
   });
 
-  it('shows validation error for empty URL', async () => {
+  it('validates URL input', () => {
     render(<EditUrlsInList listId="123" />);
     
-    // Enter edit mode
+    // Open edit form
     const editButtons = screen.getAllByRole('button', { name: /edit/i });
     fireEvent.click(editButtons[0]);
-
-    // Clear URL and try to save
-    const urlInput = screen.getByDisplayValue('https://example.com');
-    fireEvent.change(urlInput, { target: { value: '' } });
     
+    // Enter invalid URL
+    const urlInput = screen.getByLabelText('URL');
+    fireEvent.change(urlInput, { target: { value: 'not-a-valid-url' } });
+    
+    // Try to submit
     const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
-
-    // Check that input shows validation error (since error message is in aria-invalid attribute now)
-    expect(urlInput).toHaveAttribute('aria-invalid', 'true');
+    
+    // Should show validation error
+    expect(screen.getByText('Please enter a valid URL')).toBeInTheDocument();
+    
+    // Should not call updateUrl
+    expect(mockUpdateUrl).not.toHaveBeenCalled();
   });
 
-  it('handles update error gracefully', async () => {
-    mockUpdateUrl.mockRejectedValue(new Error('Failed to update URL'));
+  it('handles update errors gracefully', async () => {
+    mockUpdateUrl.mockRejectedValueOnce(new Error('Failed to update URL'));
     
     render(<EditUrlsInList listId="123" />);
     
-    // Enter edit mode and try to save
+    // Open edit form
     const editButtons = screen.getAllByRole('button', { name: /edit/i });
     fireEvent.click(editButtons[0]);
     
+    // Submit form without changes
     const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
-
-    // Just verify the update function was called
-    expect(mockUpdateUrl).toHaveBeenCalled();
+    
+    // Should show error message
+    expect(await screen.findByText('Failed to update URL')).toBeInTheDocument();
   });
 
-  it('cancels edit mode without saving', () => {
+  it('cancels editing when cancel button is clicked', () => {
     render(<EditUrlsInList listId="123" />);
     
-    // Enter edit mode
+    // Open edit form
     const editButtons = screen.getAllByRole('button', { name: /edit/i });
     fireEvent.click(editButtons[0]);
-
-    // Make changes
-    const urlInput = screen.getByDisplayValue('https://example.com');
-    fireEvent.change(urlInput, { target: { value: 'https://newexample.com' } });
-
-    // Cancel edit
+    
+    // Now click cancel
     const cancelButton = screen.getByRole('button', { name: /cancel/i });
     fireEvent.click(cancelButton);
-
-    // Verify we're back to view mode with original values
-    expect(screen.queryByDisplayValue('https://newexample.com')).not.toBeInTheDocument();
-    expect(screen.getByText('https://example.com')).toBeInTheDocument();
+    
+    // Edit form should be closed
+    expect(screen.queryByLabelText('URL')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument();
   });
 
-  it('disables buttons when loading', () => {
-    listUIState.mockIsLoading = true;
+  it('shows loading state when updating', async () => {
+    let resolvePromise;
+    const updatePromise = new Promise(resolve => { resolvePromise = resolve; });
+    mockUpdateUrl.mockReturnValueOnce(updatePromise);
     
     render(<EditUrlsInList listId="123" />);
     
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach(button => {
-      expect(button).toBeDisabled();
-    });
+    // Open edit form
+    const editButtons = screen.getAllByRole('button', { name: /edit/i });
+    fireEvent.click(editButtons[0]);
+    
+    // Submit form without changes
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    fireEvent.click(saveButton);
+    
+    // Save button should be in loading state
+    expect(saveButton).toBeDisabled();
+    expect(saveButton.querySelector('.animate-spin')).toBeInTheDocument();
+    
+    // Resolve the promise
+    resolvePromise(true);
+    await updatePromise;
+  });
+
+  it('shows an empty state when there are no URLs', () => {
+    const emptyList = {
+      id: '456',
+      name: 'Empty List',
+      urls: []
+    };
+    
+    listStoreMock.mockLists = [emptyList];
+    listStoreMock.mockActiveListId = '456';
+    
+    render(<EditUrlsInList listId="456" />);
+    
+    expect(screen.getByText('No URLs')).toBeInTheDocument();
+    expect(screen.getByText('This list does not contain any URLs yet')).toBeInTheDocument();
+  });
+
+  it('returns null when list is not found', () => {
+    listStoreMock.mockLists = [];
+    listStoreMock.mockActiveListId = null;
+    
+    const { container } = render(<EditUrlsInList listId="999" />);
+    expect(container.firstChild).toBeNull();
   });
 });

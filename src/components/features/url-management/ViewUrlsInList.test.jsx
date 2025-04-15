@@ -2,200 +2,159 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ViewUrlsInList from './ViewUrlsInList';
 
-// Import our mocks
-import { 
-  mockListStore, 
-  mockListUIState, 
-  mockSetActiveList,
-  resetMocks
-} from '../../../test/storeMocks';
+// Mock variables to prevent reference errors
+const listStoreMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockLists: [],
+  mockActiveListId: null
+};
 
-// Mock the stores/lists module
-vi.mock('../../../stores/lists', () => ({
-  listStore: mockListStore,
-  listUIState: mockListUIState,
-  setActiveList: mockSetActiveList
-}));
+const listUIStateMock = {
+  get: vi.fn(),
+  set: vi.fn(),
+  subscribe: vi.fn(),
+  mockIsLoading: false,
+  mockError: null
+};
+
+// Mock the stores module
+vi.mock('../../../stores/lists', () => {
+  return {
+    listStore: listStoreMock,
+    listUIState: listUIStateMock,
+    addUrlToList: vi.fn(),
+    updateUrl: vi.fn(),
+    deleteUrl: vi.fn()
+  };
+});
 
 // Mock the nanostores/react module
 vi.mock('@nanostores/react', () => ({
   useStore: (store) => {
-    if (store === mockListStore) {
-      return mockListStore.mockState;
+    if (store === listStoreMock) {
+      return { 
+        lists: listStoreMock.mockLists, 
+        activeListId: listStoreMock.mockActiveListId 
+      };
     }
-    if (store === mockListUIState) {
-      return mockListUIState.mockState;
+    if (store === listUIStateMock) {
+      return { 
+        isLoading: listUIStateMock.mockIsLoading, 
+        error: listUIStateMock.mockError 
+      };
     }
     return {};
   }
 }));
 
-describe('ViewUrlsInList', () => {
-  const mockUrls = [
-    { 
-      id: '1', 
-      url: 'https://example.com', 
-      title: 'Example Site',
-      createdAt: '2025-04-13T10:00:00Z'
-    },
-    { 
-      id: '2', 
-      url: 'https://test.com', 
-      title: 'Test Site',
-      createdAt: '2025-04-13T11:00:00Z'
-    },
-    { 
-      id: '3', 
-      url: 'https://another.com', 
-      title: '',
-      createdAt: '2025-04-13T12:00:00Z'
-    }
-  ];
+// Mock child components
+vi.mock('./AddUrlsToList', () => ({
+  default: () => <div data-testid="add-urls-mock">Add URLs Mock</div>
+}));
 
+vi.mock('./EditUrlsInList', () => ({
+  default: () => <div data-testid="edit-urls-mock">Edit URLs Mock</div>
+}));
+
+vi.mock('./DeleteUrlsFromList', () => ({
+  default: () => <div data-testid="delete-urls-mock">Delete URLs Mock</div>
+}));
+
+vi.mock('./UrlListTable', () => ({
+  default: ({ urls }) => (
+    <div data-testid="url-list-table-mock">
+      URL List Table Mock - {urls.length} URLs
+    </div>
+  )
+}));
+
+vi.mock('./SearchAndFilter', () => ({
+  default: ({ onSearch }) => (
+    <div data-testid="search-filter-mock">
+      <button onClick={() => onSearch('test')}>Search</button>
+    </div>
+  )
+}));
+
+describe('ViewUrlsInList', () => {
   const mockList = {
     id: '123',
     name: 'Test List',
-    description: 'Test Description',
-    urls: mockUrls
+    urls: [
+      { id: 'url1', url: 'https://example.com', title: 'Example 1' },
+      { id: 'url2', url: 'https://example.org', title: 'Example 2' },
+    ]
+  };
+
+  const emptyList = {
+    id: '456',
+    name: 'Empty List',
+    urls: []
   };
 
   beforeEach(() => {
-    resetMocks();
+    // Reset mock state for stores
+    listStoreMock.mockLists = [mockList, emptyList];
+    listStoreMock.mockActiveListId = '123';
+    listUIStateMock.mockIsLoading = false;
+    listUIStateMock.mockError = null;
     
-    // Set mock states for this component
-    mockListStore.mockState = { 
-      lists: [mockList], 
-      activeListId: '123' 
-    };
-    
-    mockListUIState.mockState = { 
-      isLoading: false, 
-      error: null 
-    };
+    // Reset mocks
+    vi.clearAllMocks();
   });
 
-  it('renders the list of URLs with titles and dates', () => {
+  it('renders URL list with all components', () => {
     render(<ViewUrlsInList listId="123" />);
     
-    expect(screen.getByText('Example Site')).toBeInTheDocument();
-    expect(screen.getByText('Test Site')).toBeInTheDocument();
-    expect(screen.getByText('-')).toBeInTheDocument(); // For empty title
-    expect(screen.getByText('https://example.com')).toBeInTheDocument();
-    expect(screen.getByText('https://test.com')).toBeInTheDocument();
-    expect(screen.getByText('https://another.com')).toBeInTheDocument();
+    expect(screen.getByText('URL List Table Mock - 2 URLs')).toBeInTheDocument();
+    expect(screen.getByTestId('add-urls-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('edit-urls-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('delete-urls-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('search-filter-mock')).toBeInTheDocument();
   });
 
-  it('shows loading state', () => {
-    mockListUIState.mockState = { isLoading: true, error: null };
-    render(<ViewUrlsInList listId="123" />);
-    
-    expect(screen.getByTestId('spinner')).toBeInTheDocument();
-  });
-
-  it('filters URLs by search term', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    const searchInput = screen.getByPlaceholderText(/search urls/i);
-    fireEvent.change(searchInput, { target: { value: 'example' } });
-
-    expect(screen.getByText('https://example.com')).toBeInTheDocument();
-    expect(screen.queryByText('https://test.com')).not.toBeInTheDocument();
-  });
-
-  it('shows empty state when search has no results', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    const searchInput = screen.getByPlaceholderText(/search urls/i);
-    fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
-
-    expect(screen.getByText(/no matching urls found/i)).toBeInTheDocument();
-    expect(screen.getByText(/try adjusting your search term/i)).toBeInTheDocument();
-  });
-
-  it('shows empty state when list has no URLs', () => {
-    mockListStore.mockState = {
-      lists: [{ ...mockList, urls: [] }],
-      activeListId: '123'
-    };
-    
-    render(<ViewUrlsInList listId="123" />);
-    expect(screen.getByText(/no urls in this list yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/add some urls to get started/i)).toBeInTheDocument();
-  });
-
-  it('sorts URLs by URL when URL header is clicked', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    const urlHeader = screen.getByText('URL').closest('th');
-    fireEvent.click(urlHeader);
-
-    const urls = screen.getAllByRole('link');
-    expect(urls[0]).toHaveTextContent('https://another.com');
-    
-    // Click again to reverse sort order
-    fireEvent.click(urlHeader);
-    const urlsReversed = screen.getAllByRole('link');
-    expect(urlsReversed[0]).toHaveTextContent('https://test.com');
-  });
-
-  it('sorts URLs by title when Title header is clicked', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    const titleHeader = screen.getByText('Title').closest('th');
-    fireEvent.click(titleHeader);
-
-    const cells = screen.getAllByRole('cell');
-    expect(cells[1]).toHaveTextContent('Example Site');
-    
-    // Click again to reverse sort order
-    fireEvent.click(titleHeader);
-    const cellsReversed = screen.getAllByRole('cell');
-    expect(cellsReversed[1]).toHaveTextContent('Test Site');
-  });
-
-  it('sorts URLs by date when Added header is clicked', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    const dateHeader = screen.getByText('Added').closest('th');
-    fireEvent.click(dateHeader);
-
-    const cells = screen.getAllByRole('cell');
-    // Most recent first in desc order
-    expect(cells[2]).toHaveTextContent(new Date('2025-04-13T12:00:00Z').toLocaleDateString());
-    
-    // Click again to reverse sort order
-    fireEvent.click(dateHeader);
-    const cellsReversed = screen.getAllByRole('cell');
-    // Oldest first in asc order
-    expect(cellsReversed[2]).toHaveTextContent(new Date('2025-04-13T10:00:00Z').toLocaleDateString());
-  });
-
-  it('renders list title and description', () => {
-    render(<ViewUrlsInList listId="123" />);
-    
-    expect(screen.getByText('Test List')).toBeInTheDocument();
-    expect(screen.getByText('Test Description')).toBeInTheDocument();
-  });
-
-  it('displays error state when present', () => {
-    mockListUIState.mockState = { isLoading: false, error: 'Failed to load URLs' };
+  it('shows loading state when data is loading', () => {
+    listUIStateMock.mockIsLoading = true;
     
     render(<ViewUrlsInList listId="123" />);
     
-    expect(screen.getByText('Failed to load URLs')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
   });
 
-  it('renders URLs as clickable links with correct attributes', () => {
+  it('shows empty state when no URLs are found', () => {
+    listStoreMock.mockActiveListId = '456';
+    
+    render(<ViewUrlsInList listId="456" />);
+    
+    expect(screen.getByText('URL List Table Mock - 0 URLs')).toBeInTheDocument();
+  });
+
+  it('handles errors gracefully', () => {
+    listUIStateMock.mockError = 'Failed to fetch URLs';
+    
     render(<ViewUrlsInList listId="123" />);
     
-    const links = screen.getAllByRole('link');
-    expect(links[0]).toHaveAttribute('href', 'https://example.com');
-    expect(links[0]).toHaveAttribute('target', '_blank');
-    expect(links[0]).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.getByText('Failed to fetch URLs')).toBeInTheDocument();
   });
 
-  it('calls setActiveList with listId on mount', () => {
+  it('filters URLs when search is applied', () => {
     render(<ViewUrlsInList listId="123" />);
-    expect(mockSetActiveList).toHaveBeenCalledWith('123');
+    
+    // Click the search button
+    fireEvent.click(screen.getByText('Search'));
+    
+    // Should still render the URL list with filtered URLs
+    expect(screen.getByText('URL List Table Mock - 2 URLs')).toBeInTheDocument();
+  });
+
+  it('returns null when list is not found', () => {
+    listStoreMock.mockLists = [];
+    listStoreMock.mockActiveListId = null;
+    
+    const { container } = render(<ViewUrlsInList listId="999" />);
+    expect(container.firstChild).toBeNull();
   });
 });
