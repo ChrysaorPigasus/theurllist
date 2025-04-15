@@ -87,7 +87,9 @@ describe('Input', () => {
 
   it('handles different input types', () => {
     render(<Input type="password" />);
-    expect(screen.getByRole('textbox')).toHaveAttribute('type', 'password');
+    // Password inputs don't have the 'textbox' role by default, so we need to query by tag instead
+    const inputElement = document.querySelector('input[type="password"]');
+    expect(inputElement).toHaveAttribute('type', 'password');
   });
 
   it('handles change events', () => {

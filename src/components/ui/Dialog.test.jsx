@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Dialog from './Dialog';
+import Button from './Button';
 
 describe('Dialog', () => {
   it('renders nothing when not open', () => {
@@ -11,7 +12,7 @@ describe('Dialog', () => {
 
   it('renders content when open', () => {
     render(
-      <Dialog open title="Test Dialog" description="Test Description">
+      <Dialog isOpen title="Test Dialog" description="Test Description">
         Dialog Content
       </Dialog>
     );
@@ -22,12 +23,18 @@ describe('Dialog', () => {
 
   it('handles primary action click', () => {
     const handlePrimary = vi.fn();
+    const actions = (
+      <>
+        <Button onClick={handlePrimary}>Submit</Button>
+        <Button variant="secondary">Cancel</Button>
+      </>
+    );
+    
     render(
       <Dialog
-        open
+        isOpen
         title="Test"
-        primaryAction={handlePrimary}
-        primaryActionText="Submit"
+        actions={actions}
       />
     );
     
@@ -37,12 +44,18 @@ describe('Dialog', () => {
 
   it('handles secondary action click', () => {
     const handleSecondary = vi.fn();
+    const actions = (
+      <>
+        <Button>Submit</Button>
+        <Button variant="secondary" onClick={handleSecondary}>Cancel</Button>
+      </>
+    );
+    
     render(
       <Dialog
-        open
+        isOpen
         title="Test"
-        secondaryAction={handleSecondary}
-        secondaryActionText="Cancel"
+        actions={actions}
       />
     );
     
@@ -53,39 +66,45 @@ describe('Dialog', () => {
   it('handles backdrop click for closing', () => {
     const handleClose = vi.fn();
     render(
-      <Dialog open onClose={handleClose} title="Test">
+      <Dialog isOpen onClose={handleClose} title="Test">
         Content
       </Dialog>
     );
     
-    fireEvent.click(screen.getByRole('presentation', { hidden: true }));
+    fireEvent.click(screen.getByText('Content').closest('.z-20').previousSibling);
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
   it('renders danger variant when specified', () => {
+    const actions = (
+      <Button variant="danger">Delete Button</Button>
+    );
+    
     render(
       <Dialog
-        open
-        title="Delete"
-        danger
-        primaryAction={() => {}}
-        primaryActionText="Delete"
+        isOpen
+        title="Delete Confirmation"
+        actions={actions}
       />
     );
     
-    const button = screen.getByText('Delete');
+    const button = screen.getByText('Delete Button');
     expect(button).toHaveClass('bg-red-600');
   });
 
   it('applies custom button props', () => {
+    const actions = (
+      <>
+        <Button data-testid="primary-btn">Submit</Button>
+        <Button variant="secondary" data-testid="secondary-btn">Cancel</Button>
+      </>
+    );
+    
     render(
       <Dialog
-        open
+        isOpen
         title="Test"
-        primaryAction={() => {}}
-        primaryButtonProps={{ 'data-testid': 'primary-btn' }}
-        secondaryAction={() => {}}
-        secondaryButtonProps={{ 'data-testid': 'secondary-btn' }}
+        actions={actions}
       />
     );
     

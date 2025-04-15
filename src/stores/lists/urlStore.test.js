@@ -1,37 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addUrlToList, updateUrl, deleteUrl } from './urlStore';
-
-// Import our custom mocks
-import { 
-  mockAddUrlToList, 
-  mockUpdateUrl, 
-  mockDeleteUrl, 
-  mockGetActiveList, 
-  mockListUIState,
-  mockFetchListDetails,
-  resetMocks
-} from '../../test/storeMocks';
+import { addUrlToList, updateUrl, deleteUrl, listUIState } from './urlStore';
+import { getActiveList } from '../urlListStore';
 
 // Mock dependencies
-vi.mock('./urlStore', () => ({
-  addUrlToList: mockAddUrlToList,
-  updateUrl: mockUpdateUrl,
-  deleteUrl: mockDeleteUrl
+vi.mock('../urlListStore', () => ({
+  getActiveList: vi.fn()
 }));
 
-vi.mock('./listStore', () => ({
-  listUIState: mockListUIState,
-  getActiveList: mockGetActiveList,
-  fetchListDetails: mockFetchListDetails
-}));
+// Mock dynamically imported modules
+vi.mock('./listStore', async () => {
+  const actual = await vi.importActual('./listStore');
+  return {
+    ...actual,
+    fetchListDetails: vi.fn(() => Promise.resolve({ id: 123, name: 'Test List', urls: [] }))
+  };
+});
+
+// Mock console methods
+console.error = vi.fn();
+console.log = vi.fn();
 
 // Mock fetch API for test isolation
 global.fetch = vi.fn();
 
 describe('urlStore', () => {
   beforeEach(() => {
-    resetMocks();
+    // Reset mocks
+    vi.clearAllMocks();
     fetch.mockReset();
+    console.error.mockClear();
+    console.log.mockClear();
+    
+    // Reset store state
+    listUIState.set({ isLoading: false, error: null });
   });
 
   describe('addUrlToList', () => {
@@ -46,54 +47,56 @@ describe('urlStore', () => {
     it('should add URL to the list successfully', async () => {
       // Set up mock to return success
       const mockResponse = { id: 'url-1', ...validUrlData };
-      mockAddUrlToList.mockResolvedValueOnce(mockResponse);
+      
+      fetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse)
+      });
       
       const result = await addUrlToList(validListId, validUrlData);
       
-      expect(mockAddUrlToList).toHaveBeenCalledWith(validListId, validUrlData);
+      expect(fetch).toHaveBeenCalledWith('/api/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...validUrlData, list_id: 123 })
+      });
+      
       expect(result).toEqual(mockResponse);
+      expect(listUIState.get().isLoading).toBe(false);
+      expect(listUIState.get().error).toBe(null);
     });
 
     it('should handle invalid list ID format', async () => {
-      // Set up mock to simulate validation error
-      mockAddUrlToList.mockImplementationOnce((listId) => {
-        if (typeof listId !== 'string' || !listId.match(/^\d+$/)) {
-          mockListUIState.setKey('error', 'Invalid list ID format');
-          return Promise.resolve(null);
-        }
-        return Promise.resolve({});
-      });
-      
       const result = await addUrlToList('invalid', validUrlData);
       
-      expect(mockAddUrlToList).toHaveBeenCalledWith('invalid', validUrlData);
       expect(result).toBeNull();
+      expect(listUIState.get().error).toBe('Invalid list ID');
+      expect(console.error).toHaveBeenCalled();
     });
 
     it('should handle API error response', async () => {
       // Set up mock to return error
-      mockAddUrlToList.mockImplementationOnce(() => {
-        mockListUIState.setKey('error', 'Failed to add URL');
-        return Promise.resolve(null);
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        text: () => Promise.resolve('Server error')
       });
       
       const result = await addUrlToList(validListId, validUrlData);
       
-      expect(mockAddUrlToList).toHaveBeenCalledWith(validListId, validUrlData);
       expect(result).toBeNull();
+      expect(listUIState.get().error).toBe('Failed to add URL. Please try again.');
+      expect(console.error).toHaveBeenCalled();
     });
 
     it('should handle network error', async () => {
       // Set up mock to simulate network error
-      mockAddUrlToList.mockImplementationOnce(() => {
-        mockListUIState.setKey('error', 'Network error');
-        return Promise.resolve(null);
-      });
+      fetch.mockRejectedValueOnce(new Error('Network error'));
       
       const result = await addUrlToList(validListId, validUrlData);
       
-      expect(mockAddUrlToList).toHaveBeenCalledWith(validListId, validUrlData);
       expect(result).toBeNull();
+      expect(listUIState.get().error).toBe('Failed to add URL. Please try again.');
+      expect(console.error).toHaveBeenCalled();
     });
   });
 
@@ -106,44 +109,55 @@ describe('urlStore', () => {
 
     it('should update URL successfully', async () => {
       // Set up mock active list
-      const activeList = { id: '123', name: 'Test List' };
-      mockGetActiveList.mockReturnValueOnce(activeList);
+      const activeList = { id: 123, name: 'Test List' };
+      getActiveList.mockReturnValueOnce(activeList);
       
       // Set up mock to return success
-      mockUpdateUrl.mockResolvedValueOnce(true);
-      
-      const result = await updateUrl(urlId, urlData);
-      
-      expect(mockUpdateUrl).toHaveBeenCalledWith(urlId, urlData);
-      expect(mockGetActiveList).toHaveBeenCalled();
-      expect(result).toBe(true);
-    });
-
-    it('should handle API error response', async () => {
-      // Set up mock to simulate API error
-      mockUpdateUrl.mockImplementationOnce(() => {
-        mockListUIState.setKey('error', 'Failed to update URL');
-        return Promise.resolve(false);
+      fetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ ...urlData, id: urlId })
       });
       
       const result = await updateUrl(urlId, urlData);
       
-      expect(mockUpdateUrl).toHaveBeenCalledWith(urlId, urlData);
+      expect(fetch).toHaveBeenCalledWith('/api/links', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...urlData, id: urlId })
+      });
+      
+      expect(result).toBe(true);
+      expect(listUIState.get().isLoading).toBe(false);
+      expect(listUIState.get().error).toBe(null);
+    });
+
+    it('should handle API error response', async () => {
+      // Set up mock active list
+      const activeList = { id: 123, name: 'Test List' };
+      getActiveList.mockReturnValueOnce(activeList);
+      
+      // Set up mock to return error
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        text: () => Promise.resolve('Server error')
+      });
+      
+      const result = await updateUrl(urlId, urlData);
+      
       expect(result).toBe(false);
+      expect(listUIState.get().error).toBe('Failed to update URL. Please try again.');
+      expect(console.error).toHaveBeenCalled();
     });
 
     it('should handle case when no active list is found', async () => {
       // Set up mock for no active list
-      mockGetActiveList.mockReturnValueOnce(null);
-      
-      // Mock should still succeed in test
-      mockUpdateUrl.mockResolvedValueOnce(true);
+      getActiveList.mockReturnValueOnce(null);
       
       const result = await updateUrl(urlId, urlData);
       
-      expect(mockUpdateUrl).toHaveBeenCalledWith(urlId, urlData);
-      expect(mockGetActiveList).toHaveBeenCalled();
-      expect(result).toBe(true);
+      expect(fetch).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+      expect(listUIState.get().error).toBe('No active list found.');
     });
   });
 
@@ -152,44 +166,53 @@ describe('urlStore', () => {
 
     it('should delete URL successfully', async () => {
       // Set up mock active list
-      const activeList = { id: '123', name: 'Test List' };
-      mockGetActiveList.mockReturnValueOnce(activeList);
+      const activeList = { id: 123, name: 'Test List' };
+      getActiveList.mockReturnValueOnce(activeList);
       
       // Set up mock to return success
-      mockDeleteUrl.mockResolvedValueOnce(true);
-      
-      const result = await deleteUrl(urlId);
-      
-      expect(mockDeleteUrl).toHaveBeenCalledWith(urlId);
-      expect(mockGetActiveList).toHaveBeenCalled();
-      expect(result).toBe(true);
-    });
-
-    it('should handle API error response', async () => {
-      // Set up mock to simulate API error
-      mockDeleteUrl.mockImplementationOnce(() => {
-        mockListUIState.setKey('error', 'Failed to delete URL');
-        return Promise.resolve(false);
+      fetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({})
       });
       
       const result = await deleteUrl(urlId);
       
-      expect(mockDeleteUrl).toHaveBeenCalledWith(urlId);
+      expect(fetch).toHaveBeenCalledWith(`/api/links?id=${urlId}`, {
+        method: 'DELETE'
+      });
+      
+      expect(result).toBe(true);
+      expect(listUIState.get().isLoading).toBe(false);
+      expect(listUIState.get().error).toBe(null);
+    });
+
+    it('should handle API error response', async () => {
+      // Set up mock active list
+      const activeList = { id: 123, name: 'Test List' };
+      getActiveList.mockReturnValueOnce(activeList);
+      
+      // Set up mock to return error
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        text: () => Promise.resolve('Server error')
+      });
+      
+      const result = await deleteUrl(urlId);
+      
       expect(result).toBe(false);
+      expect(listUIState.get().error).toBe('Failed to delete URL. Please try again.');
+      expect(console.error).toHaveBeenCalled();
     });
 
     it('should handle case when no active list is found', async () => {
       // Set up mock for no active list
-      mockGetActiveList.mockReturnValueOnce(null);
-      
-      // Mock should still succeed in test
-      mockDeleteUrl.mockResolvedValueOnce(true);
+      getActiveList.mockReturnValueOnce(null);
       
       const result = await deleteUrl(urlId);
       
-      expect(mockDeleteUrl).toHaveBeenCalledWith(urlId);
-      expect(mockGetActiveList).toHaveBeenCalled();
-      expect(result).toBe(true);
+      expect(fetch).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+      expect(listUIState.get().error).toBe('No active list found.');
     });
   });
 });
