@@ -1,0 +1,71 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:orchestrate:unit
+        env:
+          TEST_ENV: dev
+
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:orchestrate:api
+        env:
+          TEST_ENV: tst
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - run: npm run test:orchestrate:e2e
+        env:
+          TEST_ENV: acc
+          
+  bdd-tests:
+    name: BDD Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - run: npm run test:orchestrate:bdd
+        env:
+          TEST_ENV: acc

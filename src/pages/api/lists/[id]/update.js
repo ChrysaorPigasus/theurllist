@@ -1,4 +1,4 @@
-import { updateList } from '../../../../utils/database.js';
+import { updateList } from '@utils/database.js';
 
 // Astro API endpoint for handling list updates
 export const post = async ({ params, request }) => {

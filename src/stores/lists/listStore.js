@@ -1,5 +1,5 @@
 import { map } from 'nanostores';
-import { isLoading, error, urlListStore } from '../urlListStore';
+import { isLoading, error, urlListStore } from '@stores/urlListStore';
 
 // Create dedicated stores for the lists module
 export const listStore = map({ lists: [] });

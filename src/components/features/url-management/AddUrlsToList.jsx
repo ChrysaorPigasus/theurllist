@@ -1,10 +1,10 @@
 // Feature: Adding URLs to a List (FR002)
 import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, addUrlToList } from '../../../stores/lists';
+import { listStore, listUIState, addUrlToList } from '@stores/lists';
 
-import Button from '../../ui/Button';
-import Input from '../../ui/Input';
+import Button from '@ui/Button';
+import Input from '@ui/Input';
 
 export function UrlList({ urls }) {
   if (urls.length === 0) {

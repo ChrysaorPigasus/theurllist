@@ -1,12 +1,12 @@
 // Feature: Editing URLs in a List (FR004)
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, updateUrl } from '../../../stores/lists';
-import Card from '../../ui/Card';
-import Button from '../../ui/Button';
-import Input from '../../ui/Input';
-import EmptyState from '../../ui/EmptyState';
-import Spinner from '../../ui/Spinner';
+import { listStore, listUIState, updateUrl } from '@stores/lists';
+import Card from '@ui/Card';
+import Button from '@ui/Button';
+import Input from '@ui/Input';
+import EmptyState from '@ui/EmptyState';
+import Spinner from '@ui/Spinner';
 
 export default function EditUrlsInList({ listId }) {
   const [editingId, setEditingId] = useState(null);

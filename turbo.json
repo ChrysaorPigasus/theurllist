@@ -1,0 +1,26 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "test:unit": {
+      "outputs": ["coverage/**"],
+      "cache": true
+    },
+    "test:api": {
+      "outputs": [],
+      "cache": true,
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "outputs": ["playwright-report/**"],
+      "cache": false
+    },
+    "test:bdd": {
+      "outputs": ["cucumber-report.html"],
+      "cache": false
+    },
+    "test": {
+      "dependsOn": ["test:unit", "test:api", "test:e2e", "test:bdd"],
+      "outputs": []
+    }
+  }
+}

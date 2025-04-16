@@ -1,4 +1,4 @@
-import { getListById, addUrlToList, updateUrl, deleteUrl, deleteList } from '../../../utils/database';
+import { getListById, addUrlToList, updateUrl, deleteUrl, deleteList } from '@utils/database';
 
 export const prerender = false;
 

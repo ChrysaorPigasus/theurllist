@@ -1,11 +1,11 @@
 // Main URL List Management Component
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, initializeStore, setActiveList, fetchListDetails } from '../../stores/lists';
+import { listStore, listUIState, initializeStore, setActiveList, fetchListDetails } from '@stores/lists';
 
 // Import feature-specific components from their respective directories
-import { AddUrlsToList, ViewUrlsInList, EditUrlsInList, DeleteUrlsFromList } from './url-management';
-import { CustomizeListUrl, ShareList, PublishList, AutomaticUrlGeneration } from './sharing';
+import { AddUrlsToList, ViewUrlsInList, EditUrlsInList, DeleteUrlsFromList } from '@features/url-management';
+import { CustomizeListUrl, ShareList, PublishList, AutomaticUrlGeneration } from '@features/sharing';
 
 export default function UrlList({ listId }) {
   const { lists, activeListId } = useStore(listStore);

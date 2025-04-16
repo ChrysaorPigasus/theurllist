@@ -1,9 +1,9 @@
 // Feature: Publishing a List (FR008)
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, publishList, unpublishList } from '../../../stores/lists';
-import Button from '../../ui/Button';
-import Card from '../../ui/Card';
+import { listStore, listUIState, publishList, unpublishList } from '@stores/lists';
+import Button from '@ui/Button';
+import Card from '@ui/Card';
 
 export default function PublishList({ listId }) {
   const [feedback, setFeedback] = useState('');

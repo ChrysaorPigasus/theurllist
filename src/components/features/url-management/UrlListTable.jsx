@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { formatDate } from '../../../utils/formatDate';
-import Button from '../../ui/Button';
-import Dialog from '../../ui/Dialog';
-import EditUrlsInList from './EditUrlsInList';
-import DeleteUrlsFromList from './DeleteUrlsFromList';
+import { formatDate } from '@utils/formatDate';
+import Button from '@ui/Button';
+import Dialog from '@ui/Dialog';
+import EditUrlsInList from '@url-management/EditUrlsInList';
+import DeleteUrlsFromList from '@url-management/DeleteUrlsFromList';
 
 export default function UrlListTable({ urls, onUrlUpdated, onUrlDeleted }) {
   const [editingUrl, setEditingUrl] = useState(null);

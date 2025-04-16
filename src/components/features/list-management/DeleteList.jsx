@@ -1,9 +1,9 @@
 // Feature: Delete a URL List (FR003)
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, deleteList } from '../../../stores/lists';
-import Button from '../../ui/Button';
-import Dialog from '../../ui/Dialog';
+import { listStore, listUIState, deleteList } from '@stores/lists';
+import Button from '@ui/Button';
+import Dialog from '@ui/Dialog';
 
 export default function DeleteList({ listId }) {
   const [isOpen, setIsOpen] = useState(false);

@@ -1,5 +1,5 @@
 import { map } from 'nanostores';
-import { getActiveList } from '../urlListStore';
+import { getActiveList } from '@stores/urlListStore';
 
 // UI State for sharing operations
 export const sharingUIState = map({

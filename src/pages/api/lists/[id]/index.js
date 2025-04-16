@@ -1,4 +1,4 @@
-import { getListById } from '../../../../utils/database.js';
+import { getListById } from '@utils/database.js';
 
 export async function get({ params }) {
   try {

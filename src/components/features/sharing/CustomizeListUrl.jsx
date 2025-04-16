@@ -1,11 +1,11 @@
 // Feature: Customizing the List URL (FR006)
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, updateCustomUrl } from '../../../stores/lists';
-import { validateCustomUrl } from '../../../utils/urlGeneration';
-import Card from '../../ui/Card';
-import Button from '../../ui/Button';
-import Input from '../../ui/Input';
+import { listStore, listUIState, updateCustomUrl } from '@stores/lists';
+import { validateCustomUrl } from '@utils/urlGeneration';
+import Card from '@ui/Card';
+import Button from '@ui/Button';
+import Input from '@ui/Input';
 
 export default function CustomizeListUrl({ listId }) {
   const [customUrl, setCustomUrl] = useState('');

@@ -524,3 +524,18 @@
 2025-04-16 00:15:04.730 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.108 s, sync=0.009 s, total=0.157 s; sync files=2, longest=0.006 s, average=0.005 s; distance=3 kB, estimate=43 kB; lsn=0/1B5E3F0, redo lsn=0/1B5E398
 2025-04-16 00:20:04.744 CEST [15432] LOG:  checkpoint starting: time
 2025-04-16 00:20:04.903 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.115 s, sync=0.009 s, total=0.160 s; sync files=2, longest=0.006 s, average=0.005 s; distance=3 kB, estimate=39 kB; lsn=0/1B5F220, redo lsn=0/1B5F1C8
+2025-04-16 00:25:04.921 CEST [15432] LOG:  checkpoint starting: time
+2025-04-16 00:25:05.054 CEST [15432] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.107 s, sync=0.004 s, total=0.134 s; sync files=2, longest=0.003 s, average=0.002 s; distance=3 kB, estimate=35 kB; lsn=0/1B601B0, redo lsn=0/1B60120
+2025-04-16 00:25:32.146 CEST [19496] LOG:  server process (PID 31188) was terminated by exception 0xC000013A
+2025-04-16 00:25:32.146 CEST [19496] DETAIL:  Failed process was running: 
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-16 00:25:32.146 CEST [19496] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-16 00:25:32.146 CEST [19496] LOG:  terminating any other active server processes
+2025-04-16 00:25:32.229 CEST [19496] LOG:  all server processes terminated; reinitializing
+2025-04-16 00:25:32.495 CEST [19496] LOG:  startup process (PID 30248) was terminated by exception 0xC0000142
+2025-04-16 00:25:32.495 CEST [19496] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-16 00:25:32.495 CEST [19496] LOG:  aborting startup due to startup process failure
+2025-04-16 00:25:32.497 CEST [19496] LOG:  database system is shut down

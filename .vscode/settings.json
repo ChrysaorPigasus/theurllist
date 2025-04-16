@@ -1,7 +1,11 @@
-
-   {
+{
      "workbench.editor.revealIfOpen": true,
      "comments.openView": "never",
      "javascript.suggest.paths.enabled": false,
-     "typescript.suggest.paths.enabled": false
+     "typescript.suggest.paths.enabled": false,
+     "vitest.enable": true,
+     "vitest.commandLine": "npm run test:unit:watch",
+     "vitest.showFailMessages": true,
+     "testing.automaticallyOpenPeekView": "onlyFailing",
+     "testing.autoRun.mode": "onSave"
    }

@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import Button from './Button';
+import Button from '@ui/Button';
 
 export default function Dialog({
   isOpen,

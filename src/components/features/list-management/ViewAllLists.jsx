@@ -1,13 +1,13 @@
 // Feature: View All URL Lists
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, fetchLists } from '../../../stores/lists';
-import Card from '../../ui/Card';
-import Button from '../../ui/Button';
-import EmptyState from '../../ui/EmptyState';
-import Spinner from '../../ui/Spinner';
-import DeleteList from './DeleteList';
-import UpdateList from './UpdateList';
+import { listStore, listUIState, fetchLists } from '@stores/lists';
+import Card from '@ui/Card';
+import Button from '@ui/Button';
+import EmptyState from '@ui/EmptyState';
+import Spinner from '@ui/Spinner';
+import DeleteList from '@features/list-management/DeleteList';
+import UpdateList from '@features/list-management/UpdateList';
 
 // Icons component for better organization
 const ListIcon = () => (

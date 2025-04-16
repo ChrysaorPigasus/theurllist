@@ -1,10 +1,10 @@
 // Feature: Deleting URLs from a List (FR005)
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, deleteUrl } from '../../../stores/lists';
-import Button from '../../ui/Button';
-import EmptyState from '../../ui/EmptyState';
-import Spinner from '../../ui/Spinner';
+import { listStore, listUIState, deleteUrl } from '@stores/lists';
+import Button from '@ui/Button';
+import EmptyState from '@ui/EmptyState';
+import Spinner from '@ui/Spinner';
 
 export default function DeleteUrlsFromList({ listId }) {
   const [feedback, setFeedback] = useState('');

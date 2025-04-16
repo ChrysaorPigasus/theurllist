@@ -1,5 +1,5 @@
-import { createLink, getLinksForList, updateUrl, deleteUrl } from '../../utils/database';
-import { logger, initialize } from '../../utils/db-client';
+import { createLink, getLinksForList, updateUrl, deleteUrl } from '@utils/database';
+import { logger, initialize } from '@utils/db-client';
 
 export const prerender = false;
 

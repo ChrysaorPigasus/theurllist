@@ -1,11 +1,11 @@
 // Feature: Create New URL List (FR001)
 import React, { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, createList } from '../../../stores/lists';
-import { generateSlug } from '../../../utils/urlGeneration';
-import Card from '../../ui/Card';
-import Button from '../../ui/Button';
-import Input from '../../ui/Input';
+import { listStore, listUIState, createList } from '@stores/lists';
+import { generateSlug } from '@utils/urlGeneration';
+import Card from '@ui/Card';
+import Button from '@ui/Button';
+import Input from '@ui/Input';
 
 export default function CreateNewList() {
   const [formData, setFormData] = useState({

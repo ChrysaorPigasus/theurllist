@@ -1,5 +1,5 @@
 import React from 'react';
-import Input from '../../ui/Input';
+import Input from '@ui/Input';
 
 export default function SearchAndFilter({ 
   searchTerm, 

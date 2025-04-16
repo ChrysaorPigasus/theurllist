@@ -1,5 +1,5 @@
 import { map } from 'nanostores';
-import { getActiveList } from '../urlListStore';
+import { getActiveList } from '@stores/urlListStore';
 
 // UI State for URL operations
 export const listUIState = map({

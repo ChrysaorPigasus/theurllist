@@ -1,7 +1,7 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getListById, getListBySlug } from '../../utils/database';
-import UrlList from '../../components/features/UrlList';
+import Layout from '@layouts/Layout.astro';
+import { getListById, getListBySlug } from '@utils/database';
+import UrlList from '@components/features/UrlList';
 
 const { id } = Astro.params;
 let list = null;

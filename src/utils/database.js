@@ -1,4 +1,4 @@
-import { sql, logger } from './db-client';
+import { sql, logger } from '@utils/db-client';
 
 // Ensure functions gracefully handle client-side environment
 function ensureServerSide() {

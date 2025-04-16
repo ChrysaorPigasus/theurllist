@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import Dialog from '../../ui/Dialog';
-import { generateSlug } from '../../../utils/urlGeneration';
+import Dialog from '@ui/Dialog';
+import { generateSlug } from '@utils/urlGeneration';
 
 export default function UpdateList({ listId, isOpen = false, onClose, onSuccess }) {
   const [list, setList] = useState(null);

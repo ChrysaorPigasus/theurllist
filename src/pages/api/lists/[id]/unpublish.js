@@ -1,5 +1,5 @@
-import { unpublishList, getListById } from '../../../../utils/database';
-import { logger, initialize } from '../../../../utils/db-client';
+import { unpublishList, getListById } from '@utils/database';
+import { logger, initialize } from '@utils/db-client';
 
 export const prerender = false;
 

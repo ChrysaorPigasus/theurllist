@@ -9,14 +9,14 @@ export {
   getActiveList,
   fetchLists,
   fetchListDetails
-} from './listStore';
+} from '@stores/lists/listStore';
 
 // Export URL management functions
 export {
   addUrlToList,
   updateUrl,
   deleteUrl
-} from './urlStore';
+} from '@stores/lists/urlStore';
 
 // Export sharing functions
 export {
@@ -25,4 +25,4 @@ export {
   unpublishList,
   getShareableUrl,
   shareList
-} from './sharingStore';
+} from '@stores/lists/sharingStore';

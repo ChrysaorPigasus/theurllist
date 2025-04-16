@@ -1,11 +1,11 @@
 // Feature: Accessing a Shared List
 import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { listStore, listUIState, initializeStore, setActiveList } from '../../../stores/lists';
-import Card from '../../ui/Card';
-import Button from '../../ui/Button';
-import EmptyState from '../../ui/EmptyState';
-import Spinner from '../../ui/Spinner';
+import { listStore, listUIState, initializeStore, setActiveList } from '@stores/lists';
+import Card from '@ui/Card';
+import Button from '@ui/Button';
+import EmptyState from '@ui/EmptyState';
+import Spinner from '@ui/Spinner';
 
 export default function AccessSharedList({ listId }) {
   const { lists, activeListId } = useStore(listStore);

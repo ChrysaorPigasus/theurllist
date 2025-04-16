@@ -1,5 +1,5 @@
-import { getLists, createList, deleteList, updateList } from '../../utils/database';
-import { logger, initialize } from '../../utils/db-client';
+import { getLists, createList, deleteList, updateList } from '@utils/database';
+import { logger, initialize } from '@utils/db-client';
 
 export const prerender = false;
 
@@ -23,12 +23,26 @@ export async function GET() {
 export async function POST({ request }) {
   try {
     await initialize();
-    const { name, title, description, slug } = await request.json();
+    const { id, name, title, description, slug } = await request.json();
 
-    const resolvedTitle = title || null;
-    const resolvedDescription = description || null;
-    const resolvedSlug = slug || null;
-
+    // If ID is provided, it's an update operation
+    if (id) {
+      const updatedList = await updateList(id, { name, title, description, slug });
+      
+      if (!updatedList) {
+        return new Response(JSON.stringify({ error: 'List not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify(updatedList), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Otherwise it's a create operation
     if (!name) {
       return new Response(JSON.stringify({ 
         error: 'List name is required.' 
@@ -38,14 +52,18 @@ export async function POST({ request }) {
       });
     }
 
+    const resolvedTitle = title || null;
+    const resolvedDescription = description || null;
+    const resolvedSlug = slug || null;
+
     const list = await createList({ name, title: resolvedTitle, description: resolvedDescription, slug: resolvedSlug });
     return new Response(JSON.stringify(list), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    logger.error(error, 'API Error: Failed to create list');
-    return new Response(JSON.stringify({ error: 'Failed to create list' }), {
+    logger.error(error, 'API Error: Failed to create or update list');
+    return new Response(JSON.stringify({ error: 'Failed to process list operation' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -78,42 +96,6 @@ export async function PUT({ request }) {
     }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
-    });
-  }
-}
-
-export async function POST({ params, request }) {
-  try {
-    const { id } = params;
-    const body = await request.json();
-    
-    // Extract only the allowed fields
-    const { name, title, description } = body;
-    
-    const updatedList = await updateList(id, { name, title, description });
-    
-    if (!updatedList) {
-      return new Response(JSON.stringify({ error: 'List not found' }), {
-        status: 404,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    }
-    
-    return new Response(JSON.stringify(updatedList), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-  } catch (error) {
-    console.error('Error updating list:', error);
-    return new Response(JSON.stringify({ error: 'Failed to update list' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
     });
   }
 }
