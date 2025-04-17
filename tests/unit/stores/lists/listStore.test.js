@@ -45,8 +45,8 @@ describe('listStore', () => {
     // Reset all mocks
     vi.clearAllMocks();
     
-    // Reset global.fetch
-    global.fetch.mockReset();
+    // Reset global.fetch - vervang mockReset door een nieuwe mock-implementatie
+    global.fetch = vi.fn();
     
     // Set up default responses for mock functions
     listStore.get.mockReturnValue({ lists: [] });

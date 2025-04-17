@@ -13,7 +13,13 @@ export default defineConfig({
   ],
   output: 'server', // Enable server-side rendering
   server: {
-    port: 3000
+    port: 3000,
+    // Voeg CORS headers toe
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
   },
   // Add this configuration to disable dev toolbar and source file attributes
   devToolbar: {

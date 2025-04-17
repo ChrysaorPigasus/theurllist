@@ -539,3 +539,18 @@
 2025-04-16 00:25:32.495 CEST [19496] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
 2025-04-16 00:25:32.495 CEST [19496] LOG:  aborting startup due to startup process failure
 2025-04-16 00:25:32.497 CEST [19496] LOG:  database system is shut down
+2025-04-17 12:29:21.562 CEST [30144] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-17 12:29:21.583 CEST [30144] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-17 12:29:21.583 CEST [30144] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-17 12:29:21.835 CEST [26804] LOG:  database system was interrupted; last known up at 2025-04-16 00:25:05 CEST
+2025-04-17 12:29:23.379 CEST [26804] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-17 12:29:23.389 CEST [26804] LOG:  redo starts at 0/1B60120
+2025-04-17 12:29:23.389 CEST [26804] LOG:  invalid record length at 0/1B60260: expected at least 24, got 0
+2025-04-17 12:29:23.390 CEST [26804] LOG:  redo done at 0/1B60228 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-17 12:29:23.403 CEST [28552] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-17 12:29:23.439 CEST [28552] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.006 s, total=0.041 s; sync files=2, longest=0.004 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B60260, redo lsn=0/1B60260
+2025-04-17 12:29:23.585 CEST [30144] LOG:  database system is ready to accept connections
+2025-04-17 13:44:23.582 CEST [28552] LOG:  checkpoint starting: time
+2025-04-17 13:44:24.186 CEST [28552] LOG:  checkpoint complete: wrote 6 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.549 s, sync=0.020 s, total=0.605 s; sync files=6, longest=0.005 s, average=0.004 s; distance=4 kB, estimate=4 kB; lsn=0/1B613C8, redo lsn=0/1B61370
+2025-04-17 14:19:23.261 CEST [28552] LOG:  checkpoint starting: time
+2025-04-17 14:19:23.633 CEST [28552] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.324 s, sync=0.022 s, total=0.373 s; sync files=4, longest=0.012 s, average=0.006 s; distance=4 kB, estimate=4 kB; lsn=0/1B626F0, redo lsn=0/1B62698

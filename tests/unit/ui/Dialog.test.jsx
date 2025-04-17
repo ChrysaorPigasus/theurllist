@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Dialog from '@/components/ui/Dialog';
-import Button from '@/components/ui/Button';
+import '@testing-library/jest-dom/vitest';
+import Dialog from '@components/ui/Dialog';
+import Button from '@components/ui/Button';
 
 describe('Dialog', () => {
   it('renders nothing when not open', () => {

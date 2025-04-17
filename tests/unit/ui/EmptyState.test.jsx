@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import EmptyState from '@/components/ui/EmptyState';
+import EmptyState from '@components/ui/EmptyState';
 
 describe('EmptyState', () => {
   it('renders title and description correctly', () => {

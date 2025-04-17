@@ -38,13 +38,13 @@ describe('urlListStore', () => {
     // Reset all mocks and mock implementations
     vi.clearAllMocks();
     
+    // Reset global.fetch met een nieuwe mock functie in plaats van mockReset
+    global.fetch = vi.fn();
+    
     // Reset store values to defaults
     urlListStore.get.mockReturnValue({ lists: [], activeListId: null });
     isLoading.get.mockReturnValue(false);
     error.get.mockReturnValue(null);
-    
-    // Reset global.fetch
-    global.fetch.mockReset();
   });
 
   it('initializes with empty lists array and null activeListId', () => {

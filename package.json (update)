@@ -1,0 +1,10 @@
+{
+  "name": "project-name",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test --config=tests/api/playwright.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.0.0"
+  }
+}

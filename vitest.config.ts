@@ -10,9 +10,13 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./tests/unit/setup.ts'],
     include: [
-      '**/*.{test,spec}.{js,jsx,ts,tsx}',
       'tests/unit/**/*.{test,spec}.{js,jsx,ts,tsx}',
-      'tests/api/**/*.{test,spec}.{js,jsx,ts,tsx}'
+      'tests/api/**/*.test.{js,jsx,ts,tsx}'
+    ],
+    exclude: [
+      'tests/api/**/*.spec.ts',
+      'tests/api/playwright*.ts',
+      'tests/api/global-*.ts'
     ],
   },
   resolve: {

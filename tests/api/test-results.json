@@ -1,0 +1,195 @@
+{
+  "config": {
+    "configFile": "C:\\projects\\tests\\api\\playwright.config.ts",
+    "rootDir": "C:/projects/tests/api",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "C:\\projects\\tests\\api\\global-setup.ts",
+    "globalTeardown": "C:\\projects\\tests\\api\\global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/projects/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/projects/tests/api",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "3way",
+    "version": "1.51.1",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "playwright-api.spec.ts",
+      "file": "playwright-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "GET /api/lists - should handle lists request",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 176,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Running API tests with configuration:\n    • Database: mock\n    • API: mock\n    • Auth: mock\n    • External Services: mock\n  \n"
+                    },
+                    {
+                      "text": "Running GET test with API mock status: mocked\n"
+                    },
+                    {
+                      "text": "Validating mock API response\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-04-17T12:24:53.124Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "64aef48179f398429c5c-3218bdbf9a2142a59dbe",
+          "file": "playwright-api.spec.ts",
+          "line": 15,
+          "column": 1
+        },
+        {
+          "title": "POST /api/lists - should handle list creation request",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 54,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Running POST test with API mock status: mocked\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-04-17T12:24:53.364Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "64aef48179f398429c5c-d610de4bfd06d2928522",
+          "file": "playwright-api.spec.ts",
+          "line": 45,
+          "column": 1
+        },
+        {
+          "title": "Mock API test - only runs when API is mocked",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Running mock API test\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-04-17T12:24:53.449Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "64aef48179f398429c5c-33496e7076bfa40d0c6e",
+          "file": "playwright-api.spec.ts",
+          "line": 77,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-04-17T12:24:48.572Z",
+    "duration": 4940.083,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

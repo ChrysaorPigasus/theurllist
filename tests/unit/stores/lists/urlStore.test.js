@@ -41,8 +41,8 @@ describe('urlStore', () => {
     // Reset all mocks
     vi.clearAllMocks();
     
-    // Reset global.fetch
-    global.fetch.mockReset();
+    // Reset global.fetch - vervang mockReset door een nieuwe mock-implementatie
+    global.fetch = vi.fn();
     
     // Setup mock return values
     urlListStore.getActiveList.mockReturnValue({ id: activeListId, name: 'Test List', urls: [] });
