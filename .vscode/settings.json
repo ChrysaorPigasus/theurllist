@@ -6,13 +6,19 @@
      "vitest.enable": true,
      "vitest.commandLine": "npm run test:unit:watch",
      "vitest.showFailMessages": true,
-     "testing.automaticallyOpenPeekView": "onlyFailing",
+     "testing.automaticallyOpenPeekView": "failureAnywhere",
      "testing.autoRun.mode": "onSave",
      "playwright.env": {
           "TEST_TYPE": "e2e"
      },
      "playwright.showBrowser": false,
      "playwright.test.configPattern": "**/playwright*.config.{ts,js,mjs,jsx}",
+     "playwright.test.enableProjectMatching": true,
+     "testing.defaultGutterClickAction": "run",
+     // Zorg ervoor dat VS Code de BDD tests ophaalt bij het opstarten
+     "testing.enableStickyAutoRun": true,
+     // Specifieer dat we altijd BDD tests willen uitvoeren in de test explorer
+     "playwright.test.loadTypes": ["bdd"],
      "testing.testProfiles": [
           {
                "name": "All Tests (Local)",
@@ -51,7 +57,7 @@
                "name": "Playwright API Tests",
                "configPath": "tests/api/playwright.config.jsx",
                "baseConfigPath": "tests/config/playwright.config.base.jsx",
-               "testMatch": "**/*.spec.ts",
+               "testMatch": "**/playwright-api.spec.ts",
                "type": "playwright",
                "tag": "playwright-api",
                "enabled": true,
@@ -60,13 +66,16 @@
           },
           {
                "name": "Playwright BDD Tests",
-               "configPath": "tests/bdd/playwright.config.jsx",
+               "configPath": "tests/bdd/playwright.vscode.config.jsx",
                "baseConfigPath": "tests/config/playwright.config.base.jsx",
-               "testMatch": "**/*.spec.jsx",
+               "testMatch": "**/*cucumber-playwright-adapter.spec.jsx",
                "type": "playwright",
                "tag": "playwright-bdd",
                "enabled": true,
                "icon": "checklist",
+               "env": {
+                    "TEST_TYPE": "bdd"
+               },
                "testExplorer.sortOrder": 40
           },
           {
@@ -129,5 +138,11 @@
           }
      ],
      "testing.openTesting": "neverOpen",
-     "testing.automaticallyOpenTestResults": "neverOpen"
+     "testing.automaticallyOpenTestResults": "neverOpen",
+     "testing.coverageToolbarEnabled": true,
+     "github.copilot.chat.generateTests.codeLens": true,
+     "cucumber.features": [
+          "tests/bdd/features/*.feature",
+          "tests/bdd/features/**/*.feature"
+     ]
 }

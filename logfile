@@ -627,3 +627,37 @@
 2025-04-18 11:08:46.533 CEST [11532] LOG:  checkpoint starting: end-of-recovery immediate wait
 2025-04-18 11:08:46.560 CEST [11532] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.005 s, sync=0.006 s, total=0.032 s; sync files=2, longest=0.003 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B63C20, redo lsn=0/1B63C20
 2025-04-18 11:08:46.680 CEST [18212] LOG:  database system is ready to accept connections
+2025-04-18 21:12:35.945 CEST [18212] LOG:  server process (PID 22604) was terminated by exception 0xC000013A
+2025-04-18 21:12:35.945 CEST [18212] DETAIL:  Failed process was running: SELECT
+	    rw.oid AS oid,
+	    rw.rulename AS name,
+	    CASE WHEN rw.ev_enabled != 'D' THEN True ELSE False END AS enabled,
+	    rw.ev_enabled AS is_enable_rule,
+	    description AS comment
+	FROM
+	    pg_catalog.pg_rewrite rw
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=rw.oid AND des.classoid='pg_rewrite'::regclass)
+	WHERE
+	    rw.ev_class = 16392
+	ORDER BY
+	    rw.rulename
+2025-04-18 21:12:35.945 CEST [18212] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-18 21:12:35.946 CEST [18212] LOG:  terminating any other active server processes
+2025-04-18 21:12:35.989 CEST [18212] LOG:  all server processes terminated; reinitializing
+2025-04-18 21:12:36.203 CEST [18212] LOG:  startup process (PID 18472) was terminated by exception 0xC0000142
+2025-04-18 21:12:36.203 CEST [18212] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-18 21:12:36.203 CEST [18212] LOG:  aborting startup due to startup process failure
+2025-04-18 21:12:36.205 CEST [18212] LOG:  database system is shut down
+2025-04-18 21:21:22.400 CEST [22336] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-18 21:21:22.412 CEST [22336] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-18 21:21:22.413 CEST [22336] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-18 21:21:22.583 CEST [10288] LOG:  database system was interrupted; last known up at 2025-04-18 11:08:46 CEST
+2025-04-18 21:21:24.129 CEST [10288] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-18 21:21:24.138 CEST [10288] LOG:  redo starts at 0/1B63C98
+2025-04-18 21:21:24.138 CEST [10288] LOG:  invalid record length at 0/1B63CD0: expected at least 24, got 0
+2025-04-18 21:21:24.138 CEST [10288] LOG:  redo done at 0/1B63C98 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-18 21:21:24.147 CEST [15996] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-18 21:21:24.176 CEST [15996] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.005 s, sync=0.006 s, total=0.032 s; sync files=2, longest=0.003 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B63CD0, redo lsn=0/1B63CD0
+2025-04-18 21:21:24.287 CEST [22336] LOG:  database system is ready to accept connections
+2025-04-18 21:36:24.202 CEST [15996] LOG:  checkpoint starting: time
+2025-04-18 21:36:24.581 CEST [15996] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.330 s, sync=0.017 s, total=0.380 s; sync files=4, longest=0.011 s, average=0.005 s; distance=7 kB, estimate=7 kB; lsn=0/1B65B48, redo lsn=0/1B65AF0

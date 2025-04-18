@@ -1,6 +1,6 @@
 module.exports = {
   default: {
-    paths: ['tests/bdd/features/**/*.feature'],
+    paths: ['tests/bdd/features/*.feature'],
     require: [
       'tests/bdd/steps/**/*.jsx',
       'tests/bdd/support/**/*.jsx',

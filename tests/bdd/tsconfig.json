@@ -16,7 +16,8 @@
   "include": [
     "**/*.ts",
     "**/*.js",
+    "**/*.jsx",
     "playwright.config.jsx",
-    "cucumber-playwright-adapter.spec.jsx"
-  ]
+    "cucumber-playwright-adapter.spec.jsx",
+    "playwright.vscode.config.jsx"  ]
 }

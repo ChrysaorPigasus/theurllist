@@ -18,7 +18,7 @@ const ListIcon = () => (
 
 export default function ViewAllLists() {
   const { lists } = useStore(listStore);
-  const { isLoading, error } = useStore(listUIState);
+  const { isLoading = false, error } = useStore(listUIState);
   const [editingListId, setEditingListId] = useState(null);
 
   useEffect(() => {

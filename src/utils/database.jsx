@@ -161,9 +161,18 @@ export async function updateCustomUrl(listId, customUrl) {
 export async function createLink({ name, title, description, url, image, list_id }) {
   ensureServerSide();
   try {
+    // Ensure all values have at least null as fallback to prevent undefined values
     const [link] = await sql`
       INSERT INTO links (name, title, description, url, image, list_id, created_at)
-      VALUES (${name}, ${title}, ${description}, ${url}, ${image}, ${list_id}, NOW())
+      VALUES (
+        ${name || null}, 
+        ${title || null}, 
+        ${description || null}, 
+        ${url}, 
+        ${image || null}, 
+        ${list_id}, 
+        NOW()
+      )
       RETURNING id, name, title, description, url, image, list_id, created_at
     `;
     return link;
@@ -309,7 +318,7 @@ export async function getListBySlug(slug) {
     const [list] = await sql`
       SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
       FROM lists l
-      WHERE l.slug = ${slug} AND l.published = true
+      WHERE l.slug = ${slug}
     `;
     
     if (!list) {

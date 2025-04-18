@@ -16,7 +16,7 @@ export default function CreateNewList() {
   });
   const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
-  const { isLoading, error } = useStore(listUIState);
+  const { isLoading = false, error } = useStore(listUIState);
 
   // Auto-generate slug when title changes
   useEffect(() => {

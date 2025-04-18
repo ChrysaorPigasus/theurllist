@@ -9,7 +9,7 @@ export default function DeleteList({ listId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
-  const { isLoading, error } = useStore(listUIState);
+  const { isLoading = false, error } = useStore(listUIState);
   
   const list = lists.find(l => l.id === listId);
 

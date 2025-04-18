@@ -1,3 +1,8 @@
+// Add type declaration for vitest-dom
+declare global {
+  var __vitest_dom_installed: boolean | undefined;
+}
+
 // Voorkom dubbele registratie van jest-dom matchers
 const jestDomAlreadyRegistered = globalThis.__vitest_dom_installed;
 if (!jestDomAlreadyRegistered) {
@@ -7,8 +12,8 @@ if (!jestDomAlreadyRegistered) {
 
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, afterAll } from 'vitest';
-import { initTestEnvironment, teardownAll } from '../utils/test-setup';
-import { logIntegrationConfig } from '../utils/environment';
+import { initTestEnvironment, teardownAll } from '../utils/test-setup.jsx';
+import { logIntegrationConfig } from '../utils/environment.jsx';
 
 // Initialize the test environment before any tests run
 beforeAll(async () => {
