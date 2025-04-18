@@ -1,35 +1,22 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "es2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "strict": true,
-    "sourceMap": true,
     "outDir": "../../dist/bdd",
-    "baseUrl": "../..",
-    "paths": {
-      "@src/*": ["./src/*"],
-      "@assets/*": ["./src/assets/*"],
-      "@components/*": ["./src/components/*"],
-      "@layouts/*": ["./src/layouts/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@stores/*": ["./src/stores/*"],
-      "@styles/*": ["./src/styles/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@tests/api/*": ["./tests/api/*"],
-      "@tests/bdd/*": ["./tests/bdd/*"],
-      "@tests/e2e/*": ["./tests/e2e/*"],
-      "@tests/mocks/*": ["./tests/mocks/*"],
-      "@tests/unit/*": ["./tests/unit/*"],
-      "@tests/utils/*": ["./tests/utils/*"],
-      "*": ["./node_modules/*"]
-    }
+    "baseUrl": ".",
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "./**/*.ts",
-    "./**/*.tsx",
-    "./**/*.js",
-    "./**/*.jsx"
+    "**/*.ts",
+    "**/*.js",
+    "playwright.config.jsx",
+    "cucumber-playwright-adapter.spec.jsx"
   ]
 }

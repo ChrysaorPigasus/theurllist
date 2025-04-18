@@ -1,17 +1,29 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import  AutomaticUrlGeneration  from '@components/features/sharing/AutomaticUrlGeneration';
+import AutomaticUrlGeneration from '@components/features/sharing/AutomaticUrlGeneration';
 import { useStore } from '@nanostores/react';
 import * as listsStore from '@stores/lists';
 
-// Mock the imported modules
+// Mock the imported modules - volledige implementatie van methods
 vi.mock('@stores/lists', () => ({
   listStore: {
     subscribe: vi.fn(),
+    get: vi.fn(() => ({ 
+      lists: [{ id: '123', name: 'Test List' }], 
+      activeListId: '123' 
+    })),
+    set: vi.fn(),
+    setKey: vi.fn()
   },
   listUIState: {
     subscribe: vi.fn(),
+    get: vi.fn(() => ({ 
+      isLoading: false, 
+      error: null 
+    })),
+    set: vi.fn(),
+    setKey: vi.fn()
   },
   updateCustomUrl: vi.fn().mockResolvedValue(true)
 }));

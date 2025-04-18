@@ -23,10 +23,16 @@ vi.mock('@stores/lists', () => {
       get: vi.fn(() => ({ 
         lists: [],
         activeListId: '1'
-      }))
+      })),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
     },
     listUIState: {
-      get: vi.fn(() => ({ isLoading: false, error: null }))
+      get: vi.fn(() => ({ isLoading: false, error: null })),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
     },
     deleteUrl: vi.fn()
   };

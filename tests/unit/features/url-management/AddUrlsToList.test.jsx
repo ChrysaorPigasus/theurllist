@@ -11,8 +11,18 @@ const mockAddUrlToList = vi.fn();
 
 // Mock modules
 vi.mock('@stores/lists', () => ({
-  listStore: { get: vi.fn() },
-  listUIState: { get: vi.fn() },
+  listStore: { 
+    get: vi.fn(() => ({ lists: mockLists, activeListId: mockActiveListId })),
+    set: vi.fn(),
+    setKey: vi.fn(),
+    subscribe: vi.fn()
+  },
+  listUIState: { 
+    get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+    set: vi.fn(),
+    setKey: vi.fn(),
+    subscribe: vi.fn()
+  },
   addUrlToList: (...args) => mockAddUrlToList(...args)
 }));
 

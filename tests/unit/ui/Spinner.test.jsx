@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom'; // Voeg deze import toe om de Jest DOM matchers te laden
 import Spinner from '@components/ui/Spinner';
 
 describe('Spinner', () => {

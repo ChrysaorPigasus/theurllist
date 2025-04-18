@@ -24,17 +24,70 @@ Object.defineProperty(navigator, 'clipboard', {
   }
 });
 
+// Define mock data first
+const mockList = { 
+  id: '1', 
+  name: 'Test List',
+  urls: [
+    { id: 1, url: 'https://example.com', title: 'Example' }
+  ],
+  slug: 'test-list'
+};
+
+const mockStoreData = {
+  lists: [mockList],
+  activeListId: '1'
+};
+
+const mockUIState = {
+  isLoading: false,
+  error: null
+};
+
 // Mock stores
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn()
+  useStore: vi.fn((store) => {
+    if (store === listsStore.listStore) {
+      return mockStoreData;
+    }
+    if (store === listsStore.listUIState) {
+      return mockUIState;
+    }
+    if (store === listsStore.sharingUIState) {
+      return { isLoading: false, error: null, isPublished: false, shareUrl: null };
+    }
+    return {};
+  })
 }));
 
 // Mock the stores/lists module
 vi.mock('@stores/lists', () => {
   return {
-    listStore: {},
-    listUIState: {},
-    shareList: vi.fn().mockResolvedValue(true)
+    listStore: {
+      get: vi.fn(() => mockStoreData),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
+    },
+    listUIState: {
+      get: vi.fn(() => mockUIState),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
+    },
+    sharingUIState: {
+      get: vi.fn(() => ({ isLoading: false, error: null, isPublished: false, shareUrl: null })),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
+    },
+    shareList: vi.fn().mockResolvedValue(true),
+    getShareableUrl: vi.fn((list) => {
+      if (!list) return null;
+      return list.slug 
+        ? `http://localhost:3000/list/${list.slug}`
+        : `http://localhost:3000/list/${list.id}`;
+    })
   };
 });
 

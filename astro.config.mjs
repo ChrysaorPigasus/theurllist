@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
+import path from 'path';
 
 export default defineConfig({
   integrations: [
@@ -14,7 +15,7 @@ export default defineConfig({
   output: 'server', // Enable server-side rendering
   server: {
     port: 3000,
-    // Voeg CORS headers toe
+    // CORS headers
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -26,6 +27,17 @@ export default defineConfig({
     enabled: process.env.NODE_ENV !== 'production'
   },
   vite: {
+    resolve: {
+      alias: {
+        '@components': path.resolve('./src/components'),
+        '@features': path.resolve('./src/components/features'),
+        '@features/list-management': path.resolve('./src/components/features/list-management'),
+        '@features/sharing': path.resolve('./src/components/features/sharing'),
+        '@features/url-management': path.resolve('./src/components/features/url-management'),
+        '@ui': path.resolve('./src/components/ui'),
+        '@url-management': path.resolve('./src/components/features/url-management')
+      }
+    },
     build: {
       sourcemap: 'hidden',
       rollupOptions: {

@@ -3,7 +3,15 @@
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "baseUrl": ".",
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "paths": {
       "@src/*": ["./src/*"],
       "@assets/*": ["./src/assets/*"],
@@ -13,11 +21,19 @@
       "@stores/*": ["./src/stores/*"],
       "@styles/*": ["./src/styles/*"],
       "@utils/*": ["./src/utils/*"],
-      "@tests/api/*":["./tests/api/*"],
-      "@tests/bdd/*":["./tests/bdd/*"],
-      "@tests/e2e/*":["./tests/e2e/*"],
-      "@tests/mocks/*":["./tests/mocks/*"],
-      "@tests/unit/*":["./tests/unit/*"],
-      "@tests/utils/*":["./tests/utils/*"]}
+      "@tests/api/*": ["./tests/api/*"],
+      "@tests/bdd/*": ["./tests/bdd/*"],
+      "@tests/e2e/*": ["./tests/e2e/*"],
+      "@tests/mocks/*": ["./tests/mocks/*"],
+      "@tests/unit/*": ["./tests/unit/*"],
+      "@tests/utils/*": ["./tests/utils/*"],
+      "@tests/config/*": ["./tests/config/*"],
+      "@features/*": ["./src/components/features/*"],
+      "@features/list-management/*": ["./src/components/features/list-management/*"],
+      "@features/sharing/*": ["./src/components/features/sharing/*"],
+      "@features/url-management/*": ["./src/components/features/url-management/*"],
+      "@ui/*": ["./src/components/ui/*"],
+      "@url-management/*": ["./src/components/features/url-management/*"]
+    }
   }
 }

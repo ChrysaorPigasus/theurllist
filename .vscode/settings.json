@@ -7,5 +7,127 @@
      "vitest.commandLine": "npm run test:unit:watch",
      "vitest.showFailMessages": true,
      "testing.automaticallyOpenPeekView": "onlyFailing",
-     "testing.autoRun.mode": "onSave"
-   }
+     "testing.autoRun.mode": "onSave",
+     "playwright.env": {
+          "TEST_TYPE": "e2e"
+     },
+     "playwright.showBrowser": false,
+     "playwright.test.configPattern": "**/playwright*.config.{ts,js,mjs,jsx}",
+     "testing.testProfiles": [
+          {
+               "name": "All Tests (Local)",
+               "type": "default",
+               "enabled": true,
+               "icon": "testing",
+               "env": {
+                    "TEST_ENV": "local",
+                    "TEST_TYPES": "unit,api,e2e,bdd"
+               },
+               "testExplorer.sortOrder": 0
+          },
+          {
+               "name": "Unit Tests Only",
+               "type": "vitest",
+               "tag": "vitest-unit",
+               "enabled": true,
+               "icon": "beaker",
+               "env": {
+                    "TEST_TYPE": "unit"
+               },
+               "testExplorer.sortOrder": 10
+          },
+          {
+               "name": "API Tests Only",
+               "type": "vitest",
+               "tag": "vitest-api",
+               "enabled": true,
+               "icon": "server",
+               "env": {
+                    "TEST_TYPE": "api"
+               },
+               "testExplorer.sortOrder": 20
+          },
+          {
+               "name": "Playwright API Tests",
+               "configPath": "tests/api/playwright.config.jsx",
+               "baseConfigPath": "tests/config/playwright.config.base.jsx",
+               "testMatch": "**/*.spec.ts",
+               "type": "playwright",
+               "tag": "playwright-api",
+               "enabled": true,
+               "icon": "server-process",
+               "testExplorer.sortOrder": 30
+          },
+          {
+               "name": "Playwright BDD Tests",
+               "configPath": "tests/bdd/playwright.config.jsx",
+               "baseConfigPath": "tests/config/playwright.config.base.jsx",
+               "testMatch": "**/*.spec.jsx",
+               "type": "playwright",
+               "tag": "playwright-bdd",
+               "enabled": true,
+               "icon": "checklist",
+               "testExplorer.sortOrder": 40
+          },
+          {
+               "name": "Development Environment",
+               "type": "composite",
+               "composite": ["vitest-unit"],
+               "enabled": true,
+               "icon": "tools",
+               "env": {
+                    "TEST_ENV": "dev",
+                    "TEST_TYPES": "unit"
+               },
+               "testExplorer.sortOrder": 50
+          },
+          {
+               "name": "Test Environment",
+               "type": "composite",
+               "composite": ["vitest-unit", "vitest-api", "playwright-api"],
+               "enabled": true,
+               "icon": "server-environment",
+               "env": {
+                    "TEST_ENV": "tst",
+                    "TEST_TYPES": "unit,api"
+               },
+               "testExplorer.sortOrder": 60
+          },
+          {
+               "name": "Acceptance Environment",
+               "type": "composite",
+               "composite": ["playwright-api", "playwright-bdd"],
+               "enabled": true,
+               "icon": "verified",
+               "env": {
+                    "TEST_ENV": "acc",
+                    "TEST_TYPES": "e2e,bdd"
+               },
+               "testExplorer.sortOrder": 70
+          },
+          {
+               "name": "Force Mocks",
+               "type": "default",
+               "enabled": true,
+               "icon": "debug-alt",
+               "env": {
+                    "FORCE_MOCKS": "true",
+                    "TEST_TYPES": "unit,api,e2e,bdd"
+               },
+               "testExplorer.sortOrder": 80
+          },
+          {
+               "name": "Force Integrations",
+               "type": "default",
+               "enabled": true,
+               "icon": "database",
+               "env": {
+                    "FORCE_INTEGRATIONS": "true",
+                    "TEST_TYPES": "unit,api,e2e,bdd"
+               },
+               "testExplorer.sortOrder": 90
+          }
+     ],
+     "testing.openTesting": "neverOpen",
+     "testing.automaticallyOpenTestResults": "neverOpen"
+}

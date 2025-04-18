@@ -5,21 +5,6 @@ import { useStore } from '@nanostores/react';
 import * as listsStore from '@stores/lists';
 import PublishList  from '@components/features/sharing/PublishList';
 
-// Mock the imported modules first
-vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn()
-}));
-
-// Mock the stores and functions
-vi.mock('@stores/lists', () => {
-  return {
-    listStore: {},
-    listUIState: {},
-    publishList: vi.fn().mockResolvedValue(true),
-    unpublishList: vi.fn().mockResolvedValue(true)
-  };
-});
-
 // Create mock values for the tests
 const mockLists = [
   {
@@ -37,11 +22,53 @@ const mockLists = [
     publishedAt: '2023-01-01T12:00:00Z'
   }
 ];
+let mockIsLoading = false;
+let mockError = null;
+
+// Mock the imported modules first
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn((store) => {
+    if (store === listsStore.listStore) {
+      return { lists: mockLists };
+    } 
+    if (store === listsStore.listUIState) {
+      return { isLoading: mockIsLoading, error: mockError };
+    }
+    if (store === listsStore.sharingUIState) {
+      return { isLoading: mockIsLoading, error: mockError, isPublished: false, shareUrl: null };
+    }
+    return {};
+  })
+}));
+
+// Mock the stores and functions
+vi.mock('@stores/lists', () => {
+  return {
+    listStore: {
+      get: vi.fn(() => ({ lists: mockLists })),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
+    },
+    listUIState: {
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
+    },
+    sharingUIState: {
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError, isPublished: false, shareUrl: null })),
+      set: vi.fn(),
+      setKey: vi.fn(),
+      subscribe: vi.fn()
+    },
+    publishList: vi.fn().mockResolvedValue(true),
+    unpublishList: vi.fn().mockResolvedValue(true)
+  };
+});
 
 describe('PublishList', () => {
   const mockListId = '123';
-  let mockIsLoading = false;
-  let mockError = null;
   
   beforeEach(() => {
     vi.clearAllMocks();
@@ -49,16 +76,6 @@ describe('PublishList', () => {
     // Reset test values
     mockIsLoading = false;
     mockError = null;
-    
-    // Mock useStore to return store values
-    useStore.mockImplementation((store) => {
-      if (store === listsStore.listStore) {
-        return { lists: mockLists };
-      } else if (store === listsStore.listUIState) {
-        return { isLoading: mockIsLoading, error: mockError };
-      }
-      return {};
-    });
   });
   
   it('renders the publish button for unpublished list', () => {

@@ -1,9 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import * as listsStore from '@stores/lists';
 
-// Mock the listStore and listUIState values
+// Define mock values first
 const mockLists = [
   { id: '123', name: 'Test List', urls: [] },
   { id: '456', name: 'Another List', urls: [] }
@@ -12,20 +11,21 @@ let mockIsLoading = false;
 let mockError = null;
 
 // Mock the stores module before the component imports it
-vi.mock("@stores/lists", () => {
+vi.mock('@stores/lists', () => {
   return {
     listStore: {
-      get: vi.fn(() => ({ lists: mockLists }))
+      get: vi.fn(() => ({ lists: mockLists })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     listUIState: {
-      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError }))
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     deleteList: vi.fn().mockResolvedValue(true)
   };
 });
-
-
-
 
 // Mock the useStore hook to return our mock values
 vi.mock('@nanostores/react', () => ({
@@ -36,13 +36,13 @@ vi.mock('@nanostores/react', () => ({
     if (store.get && store.get() && 'isLoading' in store.get()) {
       return { isLoading: mockIsLoading, error: mockError };
     }
-    return {};
+    return store.get ? store.get() : {};
   })
 }));
 
-// Import the component and mocked dependencies after mock definitions
+// Import the mocked module
 import { listStore, listUIState, deleteList } from '@stores/lists';
-import  DeleteList  from '@components/features/list-management/DeleteList';
+import DeleteList from '@components/features/list-management/DeleteList';
 
 describe('DeleteList', () => {
   beforeEach(() => {

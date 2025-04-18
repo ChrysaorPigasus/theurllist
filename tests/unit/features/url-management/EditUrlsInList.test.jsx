@@ -27,8 +27,20 @@ const mockUpdateUrl = vi.fn();
 
 // Mock the stores
 vi.mock('@stores/lists', () => ({
-  listStore: { toString: () => 'listStore' },
-  listUIState: { toString: () => 'listUIState' },
+  listStore: { 
+    toString: () => 'listStore',
+    get: vi.fn(() => ({ lists: mockLists, activeListId: mockActiveListId })),
+    set: vi.fn(),
+    setKey: vi.fn(),
+    subscribe: vi.fn()
+  },
+  listUIState: { 
+    toString: () => 'listUIState',
+    get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+    set: vi.fn(),
+    setKey: vi.fn(),
+    subscribe: vi.fn()
+  },
   updateUrl: (...args) => mockUpdateUrl(...args)
 }));
 

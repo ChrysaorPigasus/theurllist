@@ -554,3 +554,76 @@
 2025-04-17 13:44:24.186 CEST [28552] LOG:  checkpoint complete: wrote 6 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.549 s, sync=0.020 s, total=0.605 s; sync files=6, longest=0.005 s, average=0.004 s; distance=4 kB, estimate=4 kB; lsn=0/1B613C8, redo lsn=0/1B61370
 2025-04-17 14:19:23.261 CEST [28552] LOG:  checkpoint starting: time
 2025-04-17 14:19:23.633 CEST [28552] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.324 s, sync=0.022 s, total=0.373 s; sync files=4, longest=0.012 s, average=0.006 s; distance=4 kB, estimate=4 kB; lsn=0/1B626F0, redo lsn=0/1B62698
+2025-04-17 14:29:23.659 CEST [28552] LOG:  checkpoint starting: time
+2025-04-17 14:29:24.048 CEST [28552] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.332 s, sync=0.021 s, total=0.390 s; sync files=4, longest=0.012 s, average=0.006 s; distance=4 kB, estimate=4 kB; lsn=0/1B63A10, redo lsn=0/1B63980
+2025-04-17 18:34:57.579 CEST [30144] LOG:  could not reserve shared memory region (addr=000002D7092E0000) for child 00000000000013A8: error code 487
+2025-04-17 23:47:54.589 CEST [30144] LOG:  server process (PID 26512) was terminated by exception 0xC000013A
+2025-04-17 23:47:54.589 CEST [30144] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-17 23:47:54.589 CEST [30144] LOG:  terminating any other active server processes
+2025-04-17 23:47:54.617 CEST [30144] LOG:  all server processes terminated; reinitializing
+2025-04-17 23:47:54.843 CEST [30144] LOG:  startup process (PID 14500) was terminated by exception 0xC0000142
+2025-04-17 23:47:54.843 CEST [30144] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-17 23:47:54.843 CEST [30144] LOG:  aborting startup due to startup process failure
+2025-04-17 23:47:54.845 CEST [30144] LOG:  database system is shut down
+2025-04-18 01:23:14.925 CEST [25888] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-18 01:23:14.940 CEST [25888] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-18 01:23:14.940 CEST [25888] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-18 01:23:15.146 CEST [2092] LOG:  database system was interrupted; last known up at 2025-04-17 14:29:24 CEST
+2025-04-18 01:23:16.749 CEST [2092] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-18 01:23:16.762 CEST [2092] LOG:  redo starts at 0/1B63980
+2025-04-18 01:23:16.762 CEST [2092] LOG:  invalid record length at 0/1B63AC0: expected at least 24, got 0
+2025-04-18 01:23:16.762 CEST [2092] LOG:  redo done at 0/1B63A88 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-18 01:23:16.774 CEST [13236] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-18 01:23:16.805 CEST [13236] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.005 s, total=0.035 s; sync files=2, longest=0.003 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B63AC0, redo lsn=0/1B63AC0
+2025-04-18 01:23:16.923 CEST [25888] LOG:  database system is ready to accept connections
+2025-04-18 10:19:21.935 CEST [25888] LOG:  server process (PID 22616) was terminated by exception 0xC000013A
+2025-04-18 10:19:21.935 CEST [25888] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-18 10:19:21.935 CEST [25888] LOG:  terminating any other active server processes
+2025-04-18 10:19:21.969 CEST [25888] LOG:  all server processes terminated; reinitializing
+2025-04-18 10:19:22.265 CEST [25888] LOG:  startup process (PID 7380) was terminated by exception 0xC0000142
+2025-04-18 10:19:22.265 CEST [25888] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-18 10:19:22.265 CEST [25888] LOG:  aborting startup due to startup process failure
+2025-04-18 10:19:22.267 CEST [25888] LOG:  database system is shut down
+2025-04-18 10:23:36.897 CEST [18388] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-18 10:23:36.912 CEST [18388] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-18 10:23:36.913 CEST [18388] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-18 10:23:37.110 CEST [11624] LOG:  database system was interrupted; last known up at 2025-04-18 01:23:16 CEST
+2025-04-18 10:23:38.467 CEST [11624] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-18 10:23:38.484 CEST [11624] LOG:  redo starts at 0/1B63B38
+2025-04-18 10:23:38.485 CEST [11624] LOG:  invalid record length at 0/1B63B70: expected at least 24, got 0
+2025-04-18 10:23:38.485 CEST [11624] LOG:  redo done at 0/1B63B38 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-18 10:23:38.502 CEST [27772] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-18 10:23:38.536 CEST [27772] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.006 s, total=0.040 s; sync files=2, longest=0.004 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B63B70, redo lsn=0/1B63B70
+2025-04-18 10:23:38.654 CEST [18388] LOG:  database system is ready to accept connections
+2025-04-18 10:41:58.916 CEST [18388] LOG:  server process (PID 19820) was terminated by exception 0xC000013A
+2025-04-18 10:41:58.916 CEST [18388] DETAIL:  Failed process was running: SELECT
+	    rw.oid AS oid,
+	    rw.rulename AS name,
+	    CASE WHEN rw.ev_enabled != 'D' THEN True ELSE False END AS enabled,
+	    rw.ev_enabled AS is_enable_rule,
+	    description AS comment
+	FROM
+	    pg_catalog.pg_rewrite rw
+	    LEFT OUTER JOIN pg_catalog.pg_description des ON (des.objoid=rw.oid AND des.classoid='pg_rewrite'::regclass)
+	WHERE
+	    rw.ev_class = 16392
+	ORDER BY
+	    rw.rulename
+2025-04-18 10:41:58.916 CEST [18388] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-18 10:41:58.916 CEST [18388] LOG:  terminating any other active server processes
+2025-04-18 10:41:58.973 CEST [18388] LOG:  all server processes terminated; reinitializing
+2025-04-18 10:41:59.196 CEST [18388] LOG:  startup process (PID 14080) was terminated by exception 0xC0000142
+2025-04-18 10:41:59.196 CEST [18388] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-18 10:41:59.197 CEST [18388] LOG:  aborting startup due to startup process failure
+2025-04-18 10:41:59.199 CEST [18388] LOG:  database system is shut down
+2025-04-18 11:08:45.185 CEST [18212] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-18 11:08:45.197 CEST [18212] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-18 11:08:45.197 CEST [18212] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-18 11:08:45.387 CEST [18848] LOG:  database system was interrupted; last known up at 2025-04-18 10:23:38 CEST
+2025-04-18 11:08:46.508 CEST [18848] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-18 11:08:46.521 CEST [18848] LOG:  redo starts at 0/1B63BE8
+2025-04-18 11:08:46.521 CEST [18848] LOG:  invalid record length at 0/1B63C20: expected at least 24, got 0
+2025-04-18 11:08:46.521 CEST [18848] LOG:  redo done at 0/1B63BE8 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-18 11:08:46.533 CEST [11532] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-18 11:08:46.560 CEST [11532] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.005 s, sync=0.006 s, total=0.032 s; sync files=2, longest=0.003 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B63C20, redo lsn=0/1B63C20
+2025-04-18 11:08:46.680 CEST [18212] LOG:  database system is ready to accept connections

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as urlListStoreModule from '@/stores/urlListStore';
+import * as urlListStoreModule from '@stores/urlListStore';
 
 // Create mock for fetch
 global.fetch = vi.fn();

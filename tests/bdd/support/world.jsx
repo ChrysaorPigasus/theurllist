@@ -1,34 +1,45 @@
 import React from 'react';
-import { setWorldConstructor } from '@cucumber/cucumber';
-import { chromium } from 'playwright';
+import { setWorldConstructor, World as CucumberWorld } from '@cucumber/cucumber';
+import { Browser, BrowserContext, Page, chromium } from '@playwright/test';
 import { env } from '@utils/environment';
 
-export class CustomWorldClass {
-  env = env;
-  
+/**
+ * World class voor het delen van context tussen Cucumber stappen
+ * Dit verbindt Cucumber met Playwright
+ */
+export class World extends CucumberWorld {
+  context: BrowserContext;
+  page: Page;
+  browser: Browser;
+
   constructor(options) {
-    Object.assign(this, options);
+    super(options);
   }
 
-  async setup() {
-    const browser = await chromium.launch({ 
-      headless: process.env.CI ? true : false 
+  /**
+   * Initialiseert de browser voor de test
+   */
+  async init() {
+    this.browser = await chromium.launch({
+      headless: process.env.HEADLESS !== 'false',
+      slowMo: 50,
     });
-    
-    this.context = await browser.newContext();
+    this.context = await this.browser.newContext();
     this.page = await this.context.newPage();
-    
-    // Log environment information
-    console.log(`Running in ${this.env.currentEnv} environment`);
-    console.log(`Base URL: ${this.env.baseUrl}`);
+    return this.page;
   }
 
-  async teardown() {
-    if (this.context) await this.context.close();
+  /**
+   * Sluit de browser na de test
+   */
+  async close() {
+    if (this.browser) {
+      await this.browser.close();
+    }
   }
 }
 
-setWorldConstructor(CustomWorldClass);
+setWorldConstructor(World);
 
 // React component wrapper for testing (example)
 export const WorldProvider = ({ children }) => {

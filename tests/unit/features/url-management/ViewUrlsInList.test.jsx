@@ -3,23 +3,46 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import ViewUrlsInList from '@features/url-management/ViewUrlsInList';
 
+// Mock data
+const mockUrls = [
+  { id: 1, url: 'https://example.com', title: 'Example', created_at: '2023-01-01' },
+  { id: 2, url: 'https://example2.com', title: 'Example 2', created_at: '2023-01-02' }
+];
+const mockList = {
+  id: 1,
+  name: 'Test List',
+  urls: mockUrls
+};
+
 // Mock the nanostores/react module
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn()
+  useStore: vi.fn((store) => {
+    if (store === listStore) {
+      return { lists: [mockList], activeListId: 1 };
+    }
+    if (store === listUIState) {
+      return { isLoading: false, error: null };
+    }
+    return {};
+  })
 }));
 
-// Mock the stores/lists module
+// Mock the stores/lists module with complete objects
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
-      get: vi.fn()
+      get: vi.fn(() => ({ lists: [mockList], activeListId: 1 })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     listUIState: {
-      get: vi.fn()
+      get: vi.fn(() => ({ isLoading: false, error: null })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
-    addUrlToList: vi.fn(),
-    updateUrl: vi.fn(),
-    deleteUrl: vi.fn()
+    addUrlToList: vi.fn().mockResolvedValue(true),
+    updateUrl: vi.fn().mockResolvedValue(true),
+    deleteUrl: vi.fn().mockResolvedValue(true)
   };
 });
 
@@ -28,15 +51,6 @@ import { listStore, listUIState, addUrlToList, updateUrl, deleteUrl } from '@sto
 
 describe('ViewUrlsInList', () => {
   const mockListId = '1';
-  const mockUrls = [
-    { id: 1, url: 'https://example.com', title: 'Example', created_at: '2023-01-01' },
-    { id: 2, url: 'https://example2.com', title: 'Example 2', created_at: '2023-01-02' }
-  ];
-  const mockList = {
-    id: 1,
-    name: 'Test List',
-    urls: mockUrls
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -1,9 +1,41 @@
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 
+// Mock dependencies before importing components
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn((store) => {
+    if (store === listStore) {
+      return { lists: mockLists };
+    }
+    if (store === listUIState) {
+      return { isLoading: mockIsLoading, error: mockError };
+    }
+    return store.get ? store.get() : {};
+  })
+}));
 
-// Mock the listStore and listUIState values
+// Mock the stores module using the factory pattern
+// This approach avoids hoisting issues with vi.mock
+vi.mock('@stores/lists', () => {
+  return {
+    listStore: {
+      get: vi.fn(() => ({ lists: [] })),
+      set: vi.fn(),
+      setKey: vi.fn()
+    },
+    listUIState: {
+      get: vi.fn(() => ({ isLoading: false, error: null })),
+      set: vi.fn(),
+      setKey: vi.fn()
+    },
+    initializeStore: vi.fn().mockResolvedValue(true),
+    setActiveList: vi.fn(),
+    deleteList: vi.fn().mockResolvedValue(true)
+  };
+});
+
+// Define mock values
 const mockLists = [
   { id: '123', name: 'Test List', urls: [] },
   { id: '456', name: 'Another List', urls: [] }
@@ -11,36 +43,9 @@ const mockLists = [
 let mockIsLoading = false;
 let mockError = null;
 
-// Mock the stores module before the component imports it
-vi.mock('@stores/lists', () => {
-  return {
-    listStore: {
-      get: vi.fn(() => ({ lists: mockLists }))
-    },
-    listUIState: {
-      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError }))
-    },
-    deleteList: vi.fn().mockResolvedValue(true)
-  };
-});
-
+// Import the component and mocked dependencies after mock definitions
+import { listStore, listUIState, deleteList } from '@stores/lists';
 import DeleteList from '@features/list-management/DeleteList';
-
-// Mock the useStore hook to return our mock values
-vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => {
-    if (store.get && store.get() && 'lists' in store.get()) {
-      return { lists: mockLists };
-    }
-    if (store.get && store.get() && 'isLoading' in store.get()) {
-      return { isLoading: mockIsLoading, error: mockError };
-    }
-    return {};
-  })
-}));
-
-// Import the mocked module
-import { deleteList } from '@stores/lists';
 
 describe('DeleteList', () => {
   beforeEach(() => {

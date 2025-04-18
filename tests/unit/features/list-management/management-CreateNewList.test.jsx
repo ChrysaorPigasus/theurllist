@@ -1,39 +1,55 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import * as listsStore from '@stores/lists';
+
+// Define mock data
+let mockLists = [];
+let mockIsLoading = false;
+let mockError = null;
 
 // Mocks need to be defined before importing the component
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => store.get())
+  useStore: vi.fn((store) => {
+    if (store === listStore) {
+      return { lists: mockLists };
+    }
+    if (store === listUIState) {
+      return { isLoading: mockIsLoading, error: mockError };
+    }
+    return store.get ? store.get() : {};
+  })
 }));
 
 // Mock the stores/lists module
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
-      get: vi.fn(() => ({ lists: [] }))
+      get: vi.fn(() => ({ lists: mockLists })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     listUIState: {
-      get: vi.fn(() => ({ isLoading: false, error: null }))
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
-    createList: vi.fn()
+    createList: vi.fn().mockResolvedValue({ id: '123', name: 'My New List' })
   };
 });
 
 // Import the component and mocked dependencies after mock definitions
 import { listStore, listUIState, createList } from '@stores/lists';
-import  CreateNewList  from '@components/features/list-management/CreateNewList';
-
+import CreateNewList from '@components/features/list-management/CreateNewList';
 
 describe('CreateNewList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
     // Reset the mock return values
-    listStore.get.mockReturnValue({ lists: [] });
-    listUIState.get.mockReturnValue({ isLoading: false, error: null });
-    createList.mockResolvedValue(true);
+    mockLists = [];
+    mockIsLoading = false;
+    mockError = null;
+    createList.mockResolvedValue({ id: '123', name: 'My New List' });
   });
 
   it('renders without crashing', () => {
@@ -91,7 +107,7 @@ describe('CreateNewList', () => {
 
   it('shows loading state while creating a list', () => {
     // Mock loading state
-    listUIState.get.mockReturnValue({ isLoading: true, error: null });
+    mockIsLoading = true;
     
     render(<CreateNewList />);
     
@@ -104,7 +120,7 @@ describe('CreateNewList', () => {
 
   it('shows error message if list creation fails', () => {
     // Mock error state
-    listUIState.get.mockReturnValue({ isLoading: false, error: 'List creation failed' });
+    mockError = 'List creation failed';
     
     render(<CreateNewList />);
     

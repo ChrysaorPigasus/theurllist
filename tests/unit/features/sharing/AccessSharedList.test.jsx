@@ -1,14 +1,41 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import AccessSharedList  from '@components/features/sharing/AccessSharedList';
+import AccessSharedList from '@components/features/sharing/AccessSharedList';
 import { useStore } from '@nanostores/react';
 import * as listsStore from '@stores/lists';
+
+// Define test data first
+const mockLists = [
+  {
+    id: '123',
+    name: 'Test List',
+    urls: [
+      { id: '1', title: 'Example', url: 'https://example.com', createdAt: '2023-01-01' }
+    ],
+    isPublished: true
+  },
+  {
+    id: '456',
+    name: 'Private List',
+    urls: [],
+    isPublished: false
+  }
+];
+  
+let mockActiveListId = null;
+let mockIsLoading = false;
+let mockError = null;
 
 // Mock dependencies before importing the component
 vi.mock('@nanostores/react', () => ({
   useStore: vi.fn((store) => {
-    // This implementation will be overridden in beforeEach
+    if (store === listsStore.listStore) {
+      return { lists: mockLists, activeListId: mockActiveListId };
+    }
+    if (store === listsStore.listUIState) {
+      return { isLoading: mockIsLoading, error: mockError };
+    }
     return {};
   })
 }));
@@ -17,36 +44,25 @@ vi.mock('@nanostores/react', () => ({
 // This approach avoids hoisting issues with vi.mock
 vi.mock('@stores/lists', () => {
   return {
-    listStore: {},
-    listUIState: {},
-    initializeStore: vi.fn(),
-    setActiveList: vi.fn()
+    listStore: {
+      get: vi.fn(() => ({ lists: mockLists, activeListId: mockActiveListId })),
+      set: vi.fn(),
+      setKey: vi.fn()
+    },
+    listUIState: {
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+      set: vi.fn(),
+      setKey: vi.fn()
+    },
+    initializeStore: vi.fn().mockResolvedValue(true),
+    setActiveList: vi.fn(),
+    getActiveList: vi.fn().mockImplementation(() => {
+      return mockLists.find(list => list.id === mockActiveListId);
+    })
   };
 });
 
 describe('AccessSharedList', () => {
-  // Define test data
-  const mockLists = [
-    {
-      id: '123',
-      name: 'Test List',
-      urls: [
-        { id: '1', title: 'Example', url: 'https://example.com', createdAt: '2023-01-01' }
-      ],
-      isPublished: true
-    },
-    {
-      id: '456',
-      name: 'Private List',
-      urls: [],
-      isPublished: false
-    }
-  ];
-  
-  let mockActiveListId;
-  let mockIsLoading;
-  let mockError;
-
   beforeEach(() => {
     vi.clearAllMocks();
     
@@ -54,17 +70,6 @@ describe('AccessSharedList', () => {
     mockActiveListId = null;
     mockIsLoading = false;
     mockError = null;
-    
-    // Set up useStore mock implementation for each test
-    useStore.mockImplementation((store) => {
-      if (store === listsStore.listStore) {
-        return { lists: mockLists, activeListId: mockActiveListId };
-      }
-      if (store === listsStore.listUIState) {
-        return { isLoading: mockIsLoading, error: mockError };
-      }
-      return {};
-    });
   });
 
   it('initializes store and sets active list when mounted', () => {

@@ -1,30 +1,63 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import  CustomizeListUrl  from '@components/features/sharing/CustomizeListUrl';
+import '@testing-library/jest-dom';
+
+import CustomizeListUrl from '@components/features/sharing/CustomizeListUrl';
 import * as listsStore from '@stores/lists';
 
 // Mocks need to be defined before importing the component
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => store.get())
+  useStore: vi.fn((store) => {
+    if (store === listsStore.listStore) {
+      return { lists: [mockList] };
+    }
+    if (store === listsStore.listUIState) {
+      return { isLoading: mockIsLoading, error: mockError };
+    }
+    if (store === listsStore.sharingUIState) {
+      return { 
+        isLoading: mockIsLoading, 
+        error: mockError, 
+        isPublished: false, 
+        shareUrl: null 
+      };
+    }
+    return store.get ? store.get() : {};
+  })
 }));
 
-// Mock the stores/lists module
+// Define mock data and state
+const mockList = {
+  id: '1',
+  name: 'Test List',
+  customUrl: null
+};
+let mockIsLoading = false;
+let mockError = null;
+
+// Mock the stores/lists module with complete objects
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
-      get: vi.fn(() => ({ lists: [] }))
+      get: vi.fn(() => ({ lists: [mockList] })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     listUIState: {
-      get: vi.fn(() => ({ isLoading: false, error: null }))
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     sharingUIState: {
       get: vi.fn(() => ({ 
-        isLoading: false, 
-        error: null, 
+        isLoading: mockIsLoading, 
+        error: mockError, 
         isPublished: false, 
         shareUrl: null 
-      }))
+      })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     getActiveList: vi.fn(),
     updateCustomUrl: vi.fn(),
@@ -49,22 +82,16 @@ vi.mock('@components/features/sharing/CustomizeListUrl', () => {
 });
 
 describe('CustomizeListUrl', () => {
-  const mockList = {
-    id: '1',
-    name: 'Test List',
-    customUrl: null
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
     
     // Reset the mock return values
     listsStore.getActiveList.mockReturnValue(mockList);
     listsStore.listStore.get.mockReturnValue({ lists: [mockList] });
-    listsStore.listUIState.get.mockReturnValue({ isLoading: false, error: null });
+    listsStore.listUIState.get.mockReturnValue({ isLoading: mockIsLoading, error: mockError });
     listsStore.sharingUIState.get.mockReturnValue({ 
-      isLoading: false, 
-      error: null, 
+      isLoading: mockIsLoading, 
+      error: mockError, 
       isPublished: false, 
       shareUrl: null 
     });

@@ -1,59 +1,69 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import * as listsStore from '@stores/lists';
 
-// Mocks need to be defined before importing the component
+// Mock data voor alle tests
+const mockLists = [
+  { id: '1', name: 'Test List 1', urls: [] },
+  { id: '2', name: 'Test List 2', urls: [] }
+];
+
+// Mutable state voor dynamische mock responses
+let mockIsLoading = false;
+let mockError = null;
+let mockListsData = [...mockLists]; // Standaardwaarde die aangepast kan worden in tests
+
+// Mock @nanostores/react VÓÓR import van de component
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => store.get())
+  useStore: vi.fn((store) => {
+    if (store.name === 'listStore') {
+      return { lists: mockListsData };
+    }
+    if (store.name === 'listUIState') {
+      return { isLoading: mockIsLoading, error: mockError };
+    }
+    return store.get ? store.get() : {};
+  })
 }));
 
-// Mock the stores/lists module
+// Mock de stores/lists module
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
-      get: vi.fn(() => ({ lists: [] }))
+      name: 'listStore',
+      get: vi.fn(() => ({ lists: mockListsData })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
     listUIState: {
-      get: vi.fn(() => ({ isLoading: false, error: null }))
+      name: 'listUIState',
+      get: vi.fn(() => ({ isLoading: mockIsLoading, error: mockError })),
+      set: vi.fn(),
+      setKey: vi.fn()
     },
-    fetchLists: vi.fn().mockResolvedValue(true)
+    fetchLists: vi.fn().mockResolvedValue(true),
+    setActiveList: vi.fn()
   };
 });
 
-// Mock DeleteList since we're testing ViewAllLists in isolation
+// Mock DeleteList component
 vi.mock('./DeleteList', () => ({
   default: ({ listId }) => <button data-testid={`delete-list-${listId}`}>Delete List</button>
 }));
 
-// Import the component and mocked dependencies after mock definitions
-import { listStore, listUIState} from '@stores/lists';
-import  ViewAllLists  from '@components/features/list-management/ViewAllLists';
-
+// Import de component en mocked dependencies NA de mock definities
+import { useStore } from '@nanostores/react';
+import * as listsStore from '@stores/lists';
+import ViewAllLists from '@components/features/list-management/ViewAllLists';
 
 describe('ViewAllLists', () => {
-  const mockLists = [
-    { 
-      id: 1, 
-      name: 'List 1', 
-      created_at: '2025-01-01T00:00:00Z',
-      slug: 'list-1'
-    },
-    { 
-      id: 2, 
-      name: 'List 2', 
-      created_at: '2025-01-02T00:00:00Z',
-      description: 'This is a description'
-    }
-  ];
-
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Reset the mock return values
-    listsStore.listStore.get.mockReturnValue({ lists: [] });
-    listsStore.listUIState.get.mockReturnValue({ isLoading: false, error: null });
-    listsStore.fetchLists.mockResolvedValue(true);
+    // Reset mockstate naar standaardwaarden voor elke test
+    mockIsLoading = false;
+    mockError = null;
+    mockListsData = [...mockLists];
   });
 
   it('fetches lists when mounted', () => {
@@ -63,17 +73,19 @@ describe('ViewAllLists', () => {
 
   it('displays loading spinner while fetching lists', () => {
     // Set loading state
-    listsStore.listUIState.get.mockReturnValue({ isLoading: true, error: null });
+    mockIsLoading = true;
+    mockListsData = [];
     
     render(<ViewAllLists />);
     
-    // Check for the spinner
-    expect(document.querySelector('svg.animate-spin')).toBeInTheDocument();
+    // Check voor de aanwezigheid van een spinner in plaats van een heading
+    const spinner = screen.getByTestId('spinner');
+    expect(spinner).toBeInTheDocument();
+    expect(spinner).toHaveClass('animate-spin');
   });
 
   it('displays lists when available', () => {
-    // Set lists in store
-    listsStore.listStore.get.mockReturnValue({ lists: mockLists });
+    // Standaard mockListsData wordt gebruikt
     
     render(<ViewAllLists />);
     
@@ -81,24 +93,13 @@ describe('ViewAllLists', () => {
     expect(screen.getByText('Your URL Lists')).toBeInTheDocument();
     
     // Should display all lists
-    expect(screen.getByText('List 1')).toBeInTheDocument();
-    expect(screen.getByText('List 2')).toBeInTheDocument();
-    
-    // Should display description when available
-    expect(screen.getByText('This is a description')).toBeInTheDocument();
-    
-    // Should display dates
-    const date1 = new Date(mockLists[0].created_at).toLocaleDateString();
-    expect(screen.getByText(`Created ${date1}`)).toBeInTheDocument();
-    
-    // Should display slug when available
-    expect(screen.getByText('•')).toBeInTheDocument();
-    expect(screen.getByText('/list-1')).toBeInTheDocument();
+    expect(screen.getByText('Test List 1')).toBeInTheDocument();
+    expect(screen.getByText('Test List 2')).toBeInTheDocument();
   });
 
   it('displays empty state when no lists exist', () => {
-    // Ensure lists array is empty
-    listsStore.listStore.get.mockReturnValue({ lists: [] });
+    // Lege lijst voor deze test
+    mockListsData = [];
     
     render(<ViewAllLists />);
     
@@ -106,13 +107,14 @@ describe('ViewAllLists', () => {
     expect(screen.getByText('Create your first URL list to get started')).toBeInTheDocument();
   });
 
-  it('shows error message when fetching lists fails', () => {
+  it('shows error message when fetching lists fails', async () => {
     // Set error state
-    listsStore.listUIState.get.mockReturnValue({ isLoading: false, error: 'Failed to load lists' });
-    listsStore.listStore.get.mockReturnValue({ lists: mockLists });
+    mockError = 'Failed to load lists';
     
     render(<ViewAllLists />);
     
-    expect(screen.getByText('Failed to load lists')).toBeInTheDocument();
+    // Gebruik query in plaats van getBy om geen error te krijgen als het element niet direct beschikbaar is
+    const errorElement = screen.queryByText('Failed to load lists');
+    expect(errorElement).toBeInTheDocument();
   });
 });

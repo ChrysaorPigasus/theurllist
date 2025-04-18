@@ -6,7 +6,7 @@
       "cache": true
     },
     "test:api": {
-      "outputs": [],
+      "outputs": ["test-results.json"],
       "cache": true,
       "dependsOn": ["^build"]
     },
@@ -15,7 +15,7 @@
       "cache": false
     },
     "test:bdd": {
-      "outputs": ["cucumber-report.html"],
+      "outputs": ["test-results/bdd-report/**", "cucumber-report.html"],
       "cache": false
     },
     "test": {

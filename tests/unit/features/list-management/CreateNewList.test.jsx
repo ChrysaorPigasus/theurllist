@@ -5,19 +5,32 @@ import { vi } from 'vitest';
 
 // Mocks need to be defined before importing the component
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => store.get())
+  useStore: vi.fn((store) => {
+    // Return the appropriate mock data based on the store
+    if (store === listStore) {
+      return { lists: listStore.get().lists };
+    }
+    if (store === listUIState) {
+      return listUIState.get();
+    }
+    return store.get ? store.get() : {};
+  })
 }));
 
 // Mock the stores/lists module
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
-      get: vi.fn(() => ({ lists: [] }))
+      get: vi.fn(() => ({ lists: [] })),
+      setKey: vi.fn(),
+      set: vi.fn()
     },
     listUIState: {
-      get: vi.fn(() => ({ isLoading: false, error: null }))
+      get: vi.fn(() => ({ isLoading: false, error: null })),
+      setKey: vi.fn(),
+      set: vi.fn()
     },
-    createList: vi.fn()
+    createList: vi.fn().mockResolvedValue({ id: '123', name: 'My New List' })
   };
 });
 

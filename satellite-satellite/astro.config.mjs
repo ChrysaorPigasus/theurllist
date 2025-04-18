@@ -6,5 +6,14 @@ import partytown from '@astrojs/partytown';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [react(), partytown()]
+  integrations: [react(), partytown()],
+  // Add this to align with modern module resolution
+  vite: {
+    build: {
+      sourcemap: 'hidden'
+    },
+    ssr: {
+      noExternal: ['@nanostores/react']
+    }
+  }
 });
