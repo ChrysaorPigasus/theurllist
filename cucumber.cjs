@@ -2,11 +2,11 @@ module.exports = {
   default: {
     paths: ['tests/bdd/features/*.feature'],
     require: [
-      'tests/bdd/steps/**/*.jsx',
+      'tests/bdd/cucumber-setup.cjs',
+      'tests/bdd/steps/**/*.{jsx,cjs}',
       'tests/bdd/support/**/*.jsx',
       'tests/bdd/pages/**/*.jsx'
     ],
-    requireModule: ['ts-node/register'],
     format: [
       'summary',
       'progress-bar',

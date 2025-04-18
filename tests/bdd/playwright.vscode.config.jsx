@@ -1,7 +1,12 @@
 import React from 'react';
 import { defineConfig } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import baseConfig from '../config/playwright.config.base.jsx';
+
+// Definieer __dirname equivalent voor ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * VS Code specifieke Playwright configuratie voor BDD tests

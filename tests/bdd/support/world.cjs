@@ -1,23 +1,24 @@
-import React from 'react';
-import { setWorldConstructor } from '@cucumber/cucumber';
-import { chromium } from '@playwright/test';
+// World class for sharing context between Cucumber steps
+// Connects Cucumber with Playwright
 
 /**
- * World class voor het delen van context tussen Cucumber stappen
- * Dit verbindt Cucumber met Playwright
+ * World class for sharing context between Cucumber steps
  */
-export class World {
-  constructor(options) {
-    this.options = options;
+class World {
+  constructor({ attach, log, parameters }) {
+    this.attach = attach;
+    this.log = log;
+    this.parameters = parameters;
     this.browser = null;
     this.context = null;
     this.page = null;
   }
 
   /**
-   * Initialiseert de browser voor de test
+   * Initialize the browser for the test
    */
   async init() {
+    const { chromium } = require('@playwright/test');
     this.browser = await chromium.launch({
       headless: process.env.HEADLESS !== 'false',
       slowMo: 50,
@@ -57,13 +58,5 @@ export class World {
   }
 }
 
-setWorldConstructor(World);
-
-// React component wrapper for testing (example)
-export const WorldProvider = ({ children }) => {
-  return (
-    <div className="test-world-provider">
-      {children}
-    </div>
-  );
-};
+// No React components in CommonJS module
+module.exports = { World };

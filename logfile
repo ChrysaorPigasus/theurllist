@@ -663,3 +663,14 @@
 2025-04-18 21:36:24.581 CEST [15996] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.330 s, sync=0.017 s, total=0.380 s; sync files=4, longest=0.011 s, average=0.005 s; distance=7 kB, estimate=7 kB; lsn=0/1B65B48, redo lsn=0/1B65AF0
 2025-04-18 21:41:24.595 CEST [15996] LOG:  checkpoint starting: time
 2025-04-18 21:41:25.098 CEST [15996] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.443 s, sync=0.027 s, total=0.504 s; sync files=5, longest=0.013 s, average=0.006 s; distance=9 kB, estimate=9 kB; lsn=0/1B68030, redo lsn=0/1B67FC0
+2025-04-18 22:08:39.591 CEST [6616] ERROR:  canceling statement due to user request
+2025-04-18 22:08:39.591 CEST [22336] LOG:  received fast shutdown request
+2025-04-18 22:08:39.606 CEST [22336] LOG:  aborting any active transactions
+2025-04-18 22:08:39.607 CEST [5180] FATAL:  terminating connection due to administrator command
+2025-04-18 22:08:39.607 CEST [16796] FATAL:  terminating connection due to administrator command
+2025-04-18 22:08:39.607 CEST [3404] FATAL:  terminating connection due to administrator command
+2025-04-18 22:08:39.609 CEST [22336] LOG:  background worker "logical replication launcher" (PID 6616) exited with exit code 1
+2025-04-18 22:08:39.742 CEST [15996] LOG:  shutting down
+2025-04-18 22:08:39.745 CEST [15996] LOG:  checkpoint starting: shutdown immediate
+2025-04-18 22:08:39.768 CEST [15996] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.026 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=8 kB; lsn=0/1B680E0, redo lsn=0/1B680E0
+2025-04-18 22:08:39.790 CEST [22336] LOG:  database system is shut down
