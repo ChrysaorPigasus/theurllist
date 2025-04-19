@@ -12,6 +12,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "types": ["node", "jest", "@types/cucumber"],
     "paths": {
       "@src/*": ["./src/*"],
       "@assets/*": ["./src/assets/*"],

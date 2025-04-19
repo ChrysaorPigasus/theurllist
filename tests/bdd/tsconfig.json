@@ -17,7 +17,11 @@
     "**/*.ts",
     "**/*.js",
     "**/*.jsx",
-    "playwright.config.jsx",
-    "cucumber-playwright-adapter.spec.jsx",
-    "playwright.vscode.config.jsx"  ]
+    "**/*.cjs",
+    "@tests/bdd/playwright.config.cjs",
+    "@tests/bdd/cucumber-playwright-adapter.spec.cjs",
+    "@tests/bdd/playwright.vscode.config.jsx",
+    "@tests/bdd/support/hooks.cjs",
+    "@tests/bdd/support/world.cjs",
+  ]
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { expect } from '@playwright/test';
-import { World } from '@tests/bdd/support/world';
+import { World } from '@tests/bdd/support/world.cjs';
 import { HomePage } from '@tests/bdd/pages/HomePage.jsx';
 import { ListsPage } from '@tests/bdd/pages/ListsPage.jsx';
 import { ListEditorPage } from '@tests/bdd/pages/ListEditorPage.jsx';

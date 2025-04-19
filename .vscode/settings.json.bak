@@ -1,0 +1,138 @@
+{
+    // Editor instellingen
+    "workbench.editor.revealIfOpen": true,
+    "comments.openView": "never",
+    "javascript.suggest.paths.enabled": false,
+    "typescript.suggest.paths.enabled": false,
+    
+    // Test configuratie
+    "testing.automaticallyOpenPeekView": "failureAnywhere",
+    "testing.defaultGutterClickAction": "run",
+    
+    // Vitest configuratie
+    "vitest.enable": true,
+    "vitest.commandLine": "npm run test:unit:watch",
+    "vitest.include": [
+        "tests/unit/**/*.{test,spec}.{js,jsx,ts,tsx}",
+        "tests/api/**/*.test.{js,jsx,ts,tsx}"
+    ],
+    "vitest.exclude": [
+        "tests/api/**/*.spec.{ts,tsx,jsx}",
+        "tests/api/playwright*.{ts,tsx,jsx}",
+        "tests/api/global-*.{ts,tsx,jsx}",
+        "tests/bdd/**/*.spec.{ts,tsx,jsx}"
+    ],
+    
+    // Playwright configuratie
+    "playwright.showBrowser": false,
+    "playwright.env": {
+        "TEST_TYPE": "bdd"
+    },
+    "playwright.test.configPattern": [
+        "**/tests/bdd/playwright.vscode.config.jsx",
+        "**/tests/api/playwright.config.jsx"
+    ],
+    "playwright.test.testDir": [
+        "tests/bdd",
+        "tests/api"
+    ],
+    "playwright.test.testMatch": [
+        "**/*cucumber-playwright-adapter.spec.{cjs,jsx}",
+        "**/tests/api/**/*.spec.{ts,js,mjs,cjs,jsx}"
+    ],
+    "playwright.test.testIgnore": "**/backup-files/**,**/node_modules/**",
+    "playwright.test.ignore": ["**/backup-files/**", "**/node_modules/**"],
+    "playwright.test.enableProjectMatching": true,
+    "playwright.test.loadTypes": ["bdd", "api"],
+    
+    // Cucumber configuratie
+    "cucumber.features": [
+        "tests/bdd/features/*.feature",
+        "tests/bdd/features/**/*.feature"
+    ],
+    
+    // GitHub Copilot
+    "github.copilot.chat.generateTests.codeLens": true,
+    
+    // Expliciete testprofielen
+    "testing.preferredTestSelector": [ 
+        "vitest", 
+        "playwright" 
+    ],
+    
+    // Manuele testprofielen definiëren
+    "testing.profiles": [
+        {
+            "name": "All Tests",
+            "id": "alltests",
+            "testKind": [
+                "vitest",
+                "playwright"
+            ]
+        },
+        {
+            "name": "Unit Tests",
+            "id": "unit-tests",
+            "testKind": "vitest",
+            "testPattern": "tests/unit/**/*.{test,spec}.{js,jsx,ts,tsx}",
+            "env": {
+                "TEST_ENV": "local",
+                "TEST_TYPE": "unit"
+            }
+        },
+        {
+            "name": "API Tests",
+            "id": "api-tests",
+            "testKind": "vitest",
+            "testPattern": "tests/api/**/*.test.{js,jsx,ts,tsx}",
+            "env": {
+                "TEST_ENV": "local",
+                "TEST_TYPE": "api"
+            }
+        },
+        {
+            "name": "BDD Tests",
+            "id": "bdd-tests",
+            "testKind": "playwright",
+            "testPattern": "tests/bdd/**/*cucumber-playwright-adapter.spec.{cjs,jsx}",
+            "env": {
+                "TEST_ENV": "local",
+                "TEST_TYPE": "bdd"
+            }
+        },
+        {
+            "name": "Dev Environment",
+            "id": "dev-env",
+            "testKind": "vitest",
+            "env": {
+                "TEST_ENV": "dev",
+                "TEST_TYPE": "unit"
+            }
+        },
+        {
+            "name": "Test Environment",
+            "id": "test-env",
+            "testKind": "vitest",
+            "env": {
+                "TEST_ENV": "tst",
+                "TEST_TYPE": "unit,api"
+            }
+        },
+        {
+            "name": "With Mocks",
+            "id": "mocks",
+            "testKind": "vitest",
+            "env": {
+                "FORCE_MOCKS": "true"
+            }
+        },
+        {
+            "name": "With Integrations",
+            "id": "integrations",
+            "testKind": "vitest",
+            "env": {
+                "FORCE_INTEGRATIONS": "true"
+            }
+        }
+    ]
+}

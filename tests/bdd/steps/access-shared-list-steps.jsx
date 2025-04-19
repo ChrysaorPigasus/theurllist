@@ -1,7 +1,7 @@
 import React from 'react';
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { expect } from '@playwright/test';
-import { World } from '@tests/bdd/support/world';
+import { World } from '@tests/bdd/support/world.cjs';
 import { SharedListPage } from '@tests/bdd/pages/SharedListPage';
 import { ListsPage } from '@tests/bdd/pages/ListsPage';
 import { ListEditorPage } from '@tests/bdd/pages/ListEditorPage';

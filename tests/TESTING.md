@@ -96,6 +96,30 @@ EXTERNAL_SERVICES_INTEGRATION=mock
 
 This allows you to test with a mix of real and mock services locally.
 
+## Test Code Organization
+
+### File Format Standardization
+
+The project follows these standards for test file formats:
+
+- **Primary Format**: ES Modules (`.jsx`, `.ts`, `.tsx`) are the source of truth for all test files
+- **Generated Files**: Some CommonJS (`.cjs`) files are auto-generated for compatibility with tools like Cucumber
+- **Utilities**: All test utilities in `tests/utils` use the ES Module format
+
+For BDD testing, the following conventions apply:
+- Step definition files (`.jsx`) are automatically converted to CommonJS format (`.cjs`) for Cucumber compatibility
+- The original ES Module files remain the source of truth and should be the ones edited directly
+- Generated `.cjs` files should be treated as build artifacts
+
+### Running the Conversion Tool
+
+If you need to update the generated CommonJS files after modifying ES Module step definitions:
+
+```bash
+# Generate .cjs files from .jsx step definitions
+node scripts/convert-steps-to-commonjs.js
+```
+
 ## Mock vs Integration Mode
 
 - **Mock Mode**: Uses in-memory mocks for services (database, API, auth)

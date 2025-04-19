@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+// Import Vitest functions dynamically
+const { describe, it, expect, beforeEach } = await import('vitest');
 
 // Direct importeren van de environment configuratie kan problemen geven
 // Daarom gebruiken we een isolatie patroon met expliciete fallbacks
@@ -11,9 +12,9 @@ let envConfig = {
 
 let skipFunc = () => false;
 
-// Probeer de environment configuratie te laden met veilige fallbacks
+// Probeer de environment configuratie te laden met dynamic import
 try {
-  const environmentModule = require('@tests/utils/environment');
+  const environmentModule = await import('@tests/utils/environment');
   if (environmentModule && typeof environmentModule === 'object') {
     // Gebruik de geëxporteerde env configuratie als die beschikbaar is
     if (environmentModule.env && typeof environmentModule.env === 'object') {
