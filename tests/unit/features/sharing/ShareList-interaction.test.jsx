@@ -2,10 +2,38 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
+// Mock react-toastify to avoid actual DOM manipulation in tests
+vi.mock('react-toastify', () => {
+  // Create a mocked version that actually renders text for tests
+  const toastFunctions = {};
+  ['success', 'error', 'info', 'warning'].forEach(type => {
+    toastFunctions[type] = (message) => {
+      // Render the message in the DOM for tests to find
+      document.body.innerHTML += `<div data-testid="toast-${type}">${message}</div>`;
+      return `toast-id-${Math.random()}`;
+    };
+  });
+  
+  return {
+    toast: toastFunctions,
+    ToastContainer: () => <div data-testid="toast-container"></div>
+  };
+});
+
 // Mock modules first, before any other imports - using direct factory functions
 vi.mock('@nanostores/react', () => ({
   useStore: vi.fn()
 }));
+
+// Mock the stores/notificationStore module
+vi.mock('@stores/notificationStore', () => {
+  return {
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+    showInfo: vi.fn(),
+    showWarning: vi.fn()
+  };
+});
 
 // Use factory function for mocking with proper structure
 vi.mock('@stores/lists', () => {
@@ -37,6 +65,9 @@ vi.mock('@stores/lists', () => {
     })
   };
 });
+
+// Import directly after mocking
+import { showSuccess, showError, showInfo } from '@stores/notificationStore';
 
 // Import mocked modules after mocking
 import { useStore } from '@nanostores/react';
@@ -143,7 +174,7 @@ describe('ShareList - Interaction', () => {
     
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/list/test-list');
-      expect(screen.getByText(/URL copied to clipboard!/i)).toBeInTheDocument();
+      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard!');
     });
   });
 
@@ -182,17 +213,12 @@ describe('ShareList - Interaction', () => {
     const copyButton = screen.getByRole('button', { name: /Copy URL/i });
     fireEvent.click(copyButton);
     
-    // Check if feedback message appears
+    // Check if showSuccess was called with the right message
     await waitFor(() => {
-      expect(screen.getByText(/URL copied to clipboard!/i)).toBeInTheDocument();
+      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard!');
     });
     
-    // Wait long enough to see if message disappears (mock setTimeout)
-    vi.useFakeTimers();
-    vi.advanceTimersByTime(3000);
-    vi.useRealTimers();
-    
-    // This will only succeed if the feedback message is correctly shown and hidden
+    // No need to test for disappearing message as that's handled by the toast library
     expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,18 +4,15 @@ import { useStore } from '@nanostores/react';
 import { listStore, listUIState, initializeStore, setActiveList, fetchListDetails } from '@stores/lists';
 
 // Import feature-specific components from their respective directories
-import { AddUrlsToList, ViewUrlsInList, EditUrlsInList, DeleteUrlsFromList } from '@features/url-management';
-import { CustomizeListUrl, ShareList, PublishList, AutomaticUrlGeneration } from '@features/sharing';
+import { ViewUrlsInList, AddUrlsToList } from '@features/url-management';
+import { CustomizeListUrl, ShareList, PublishList } from '@features/sharing';
 
 export default function UrlList({ listId }) {
   const { lists, activeListId } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
-  // Use refs to track mounted state for async operations
   const isMounted = useRef(true);
 
-  // Create a reusable function to fetch list details
   const refreshListData = useCallback((id) => {
-    // The ID is now guaranteed to be numeric from [id].astro
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
     if (!isNaN(numericId) && isMounted.current) {
       return fetchListDetails(numericId).catch(err => {
@@ -27,40 +24,31 @@ export default function UrlList({ listId }) {
     return Promise.resolve();
   }, []);
 
-  // Setup data fetching and event listener
   useEffect(() => {
-    // Set mounted flag
     isMounted.current = true;
-    
-    // Initialize the store once if needed
+
     if (listStore.get().lists.length === 0) {
       initializeStore();
     }
 
     if (listId) {
-      // First set the active list (listId is now guaranteed to be numeric)
       setActiveList(typeof listId === 'string' ? parseInt(listId) : listId);
-      
-      // Then fetch the details for this list
       let fetchPromise = refreshListData(listId);
-      
-      // Listen for refresh events from child components
+
       const handleRefreshEvent = (event) => {
         if (isMounted.current) {
           fetchPromise = refreshListData(event.detail.listId);
         }
       };
-      
+
       window.addEventListener('refresh-list-data', handleRefreshEvent);
-      
-      // Clean up the event listener when unmounting
+
       return () => {
         isMounted.current = false;
         window.removeEventListener('refresh-list-data', handleRefreshEvent);
       };
     }
-    
-    // Clean up when unmounting
+
     return () => {
       isMounted.current = false;
     };
@@ -77,8 +65,7 @@ export default function UrlList({ listId }) {
   if (!listId) {
     return <EmptyState />;
   }
-  
-  // Find the active list
+
   const activeList = lists.find(list => list.id === activeListId);
 
   return (
@@ -97,15 +84,10 @@ export default function UrlList({ listId }) {
           </div>
         </div>
       )}
-      
+
       <div className="space-y-8">
-        {/* URL Management Sections */}
-        <UrlManagementSection listId={listId} />
-        
-        {/* URL Customization Section */}
-        <CustomizationSection listId={listId} />
-        
-        {/* Publishing and Sharing Section */}
+        <ConsolidatedUrlManagementSection listId={listId} />
+        {activeList && <CustomizationSection listId={listId} />}
         <PublishingSection listId={listId} />
       </div>
     </div>
@@ -153,53 +135,36 @@ function EmptyState() {
   );
 }
 
-function UrlManagementSection({ listId }) {
+// Consolidated URL management section that combines view and add functionality only
+function ConsolidatedUrlManagementSection({ listId }) {
   return (
-    <>
-      <section aria-labelledby="urls-section">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
+    <section aria-labelledby="url-management-section">
+      <div className="bg-white shadow sm:rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h2 id="url-management-section" className="text-lg font-medium text-gray-900 mb-4">
+            Manage URLs
+          </h2>
+
+          <div className="mb-6">
+            <h3 className="text-md font-medium text-gray-700 mb-2">Your URLs</h3>
             <ViewUrlsInList listId={listId} />
           </div>
-        </div>
-      </section>
 
-      <section aria-labelledby="add-urls-section">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <AddUrlsToList listId={listId} />
-          </div>
+          {/* Hide the input field but still show the URL list */}
+          <AddUrlsToList listId={listId} hideInput={true} />
         </div>
-      </section>
-
-      <section aria-labelledby="edit-urls-section">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <EditUrlsInList listId={listId} />
-          </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="delete-urls-section">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <DeleteUrlsFromList listId={listId} />
-          </div>
-        </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
 
+// Separate URL Customization section
 function CustomizationSection({ listId }) {
   return (
-    <section aria-labelledby="url-customization-section">
+    <section aria-labelledby="customization-section">
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <CustomizeListUrl listId={listId} />
-            <AutomaticUrlGeneration listId={listId} />
-          </div>
+          <CustomizeListUrl listId={listId} />
         </div>
       </div>
     </section>
@@ -207,14 +172,30 @@ function CustomizationSection({ listId }) {
 }
 
 function PublishingSection({ listId }) {
+  const { lists, activeListId } = useStore(listStore);
+  const activeList = lists.find(list => list.id === activeListId);
+  const hasUrls = activeList?.urls && activeList.urls.length > 0;
+
   return (
     <section aria-labelledby="publishing-sharing-section">
-      <div className="bg-white shadow sm:rounded-lg">
+      <div className="bg-white shadow sm:rounded-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
         <div className="px-4 py-5 sm:p-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <PublishList listId={listId} />
-            <ShareList listId={listId} />
-          </div>
+          <h2 id="publishing-sharing-section" className="text-lg font-medium text-gray-900 mb-4">
+            Publish & Share
+          </h2>
+          
+          {/* If the list has URLs, show both components in a grid */}
+          {hasUrls ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <PublishList listId={listId} />
+              <ShareList listId={listId} />
+            </div>
+          ) : (
+            /* Otherwise, only show the PublishList component */
+            <div>
+              <PublishList listId={listId} />
+            </div>
+          )}
         </div>
       </div>
     </section>

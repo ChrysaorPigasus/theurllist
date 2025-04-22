@@ -5,6 +5,37 @@ import ShareList from '@components/features/sharing/ShareList';
 import { useStore } from '@nanostores/react';
 import * as listsStore from '@stores/lists';
 
+// Mock react-toastify to render messages for tests
+vi.mock('react-toastify', () => {
+  // Create a mocked version that actually renders text for tests
+  const toastFunctions = {};
+  ['success', 'error', 'info', 'warning'].forEach(type => {
+    toastFunctions[type] = (message) => {
+      // Render the message in the DOM for tests to find
+      document.body.innerHTML += `<div data-testid="toast-${type}">${message}</div>`;
+      return `toast-id-${Math.random()}`;
+    };
+  });
+  
+  return {
+    toast: toastFunctions,
+    ToastContainer: () => <div data-testid="toast-container"></div>
+  };
+});
+
+// Mock notificationStore
+vi.mock('@stores/notificationStore', () => {
+  return {
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+    showInfo: vi.fn(),
+    showWarning: vi.fn()
+  };
+});
+
+// Import directly after mocking
+import { showSuccess, showError } from '@stores/notificationStore';
+
 // Mock window.open and window.location
 const originalWindow = { ...window };
 Object.defineProperty(window, 'open', {
@@ -162,8 +193,8 @@ describe('ShareList', () => {
     fireEvent.click(copyButton);
     
     await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalled();
-      expect(screen.getByText(/URL copied to clipboard!/i)).toBeInTheDocument();
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/list/test-list');
+      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard!');
     });
   });
 

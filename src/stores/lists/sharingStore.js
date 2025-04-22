@@ -1,5 +1,6 @@
 import { map } from 'nanostores';
 import { getActiveList } from '@stores/urlListStore';
+import { showSuccess, showError, showInfo } from '@stores/notificationStore';
 
 // UI State for sharing operations
 export const sharingUIState = map({
@@ -38,10 +39,12 @@ export async function updateCustomUrl(listId, customUrl) {
     }
     
     const data = await response.json();
+    showSuccess('Custom URL updated successfully');
     return data;
   } catch (err) {
     console.error('Failed to update custom URL:', err);
     sharingUIState.setKey('error', 'The custom URL is already taken. Please try another.');
+    showError('The custom URL is already taken. Please try another.');
     return null;
   } finally {
     sharingUIState.setKey('isLoading', false);
@@ -65,10 +68,12 @@ export async function publishList(listId) {
     const data = await response.json();
     sharingUIState.setKey('isPublished', true);
     sharingUIState.setKey('shareUrl', data.shareUrl);
+    showSuccess('List published successfully');
     return data;
   } catch (err) {
     console.error('Failed to publish list:', err);
     sharingUIState.setKey('error', 'Failed to publish the list. Please try again.');
+    showError('Failed to publish the list. Please try again.');
     return null;
   } finally {
     sharingUIState.setKey('isLoading', false);
@@ -92,10 +97,12 @@ export async function unpublishList(listId) {
     const data = await response.json();
     sharingUIState.setKey('isPublished', false);
     sharingUIState.setKey('shareUrl', null);
+    showSuccess('List is now private');
     return data;
   } catch (err) {
     console.error('Failed to unpublish list:', err);
     sharingUIState.setKey('error', 'Failed to make the list private. Please try again.');
+    showError('Failed to make the list private. Please try again.');
     return null;
   } finally {
     sharingUIState.setKey('isLoading', false);
@@ -132,10 +139,12 @@ export async function shareList(customUrl) {
       : `${window.location.origin}/list/${activeList.id}`;
       
     sharingUIState.setKey('shareUrl', shareUrl);
+    showSuccess('List shared successfully! Link ready to share.');
     return shareUrl;
   } catch (err) {
     console.error('Failed to share list:', err);
     sharingUIState.setKey('error', 'Failed to share list. ' + err.message);
+    showError('Failed to share list. ' + err.message);
     return null;
   } finally {
     sharingUIState.setKey('isLoading', false);

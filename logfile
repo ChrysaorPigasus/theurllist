@@ -711,3 +711,65 @@
 2025-04-22 19:36:07.418 CEST [25724] LOG:  database system is ready to accept connections
 2025-04-22 19:41:07.298 CEST [9752] LOG:  checkpoint starting: time
 2025-04-22 19:41:07.799 CEST [9752] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.441 s, sync=0.025 s, total=0.502 s; sync files=5, longest=0.014 s, average=0.005 s; distance=10 kB, estimate=10 kB; lsn=0/1B6D6E8, redo lsn=0/1B6D690
+2025-04-22 19:45:31.582 CEST [25724] LOG:  server process (PID 6084) was terminated by exception 0xC000013A
+2025-04-22 19:45:31.582 CEST [25724] DETAIL:  Failed process was running: 
+	      SELECT id, name, title, description, slug, created_at, published, published_at
+	      FROM lists 
+	      ORDER BY created_at DESC
+	    
+2025-04-22 19:45:31.582 CEST [25724] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-22 19:45:31.582 CEST [25724] LOG:  terminating any other active server processes
+2025-04-22 19:45:31.618 CEST [25724] LOG:  all server processes terminated; reinitializing
+2025-04-22 19:45:31.806 CEST [25724] LOG:  startup process (PID 10216) was terminated by exception 0xC0000142
+2025-04-22 19:45:31.806 CEST [25724] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-22 19:45:31.807 CEST [25724] LOG:  aborting startup due to startup process failure
+2025-04-22 19:45:31.808 CEST [25724] LOG:  database system is shut down
+2025-04-22 21:12:33.397 CEST [21772] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-22 21:12:33.414 CEST [21772] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-22 21:12:33.414 CEST [21772] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-22 21:12:33.663 CEST [7824] LOG:  database system was interrupted; last known up at 2025-04-22 19:41:07 CEST
+2025-04-22 21:12:35.312 CEST [7824] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-22 21:12:35.330 CEST [7824] LOG:  redo starts at 0/1B6D690
+2025-04-22 21:12:35.335 CEST [7824] LOG:  invalid record length at 0/1B6EF28: expected at least 24, got 0
+2025-04-22 21:12:35.335 CEST [7824] LOG:  redo done at 0/1B6EEF0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-22 21:12:35.351 CEST [24000] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-22 21:12:35.400 CEST [24000] LOG:  checkpoint complete: wrote 6 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.011 s, sync=0.013 s, total=0.055 s; sync files=5, longest=0.003 s, average=0.003 s; distance=6 kB, estimate=6 kB; lsn=0/1B6EF28, redo lsn=0/1B6EF28
+2025-04-22 21:12:35.605 CEST [21772] LOG:  database system is ready to accept connections
+2025-04-22 21:37:35.455 CEST [24000] LOG:  checkpoint starting: time
+2025-04-22 21:37:36.170 CEST [24000] LOG:  checkpoint complete: wrote 7 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.660 s, sync=0.023 s, total=0.716 s; sync files=7, longest=0.012 s, average=0.004 s; distance=10 kB, estimate=10 kB; lsn=0/1B71AA8, redo lsn=0/1B71A50
+2025-04-22 21:42:35.186 CEST [24000] LOG:  checkpoint starting: time
+2025-04-22 21:42:35.677 CEST [24000] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.432 s, sync=0.022 s, total=0.492 s; sync files=5, longest=0.013 s, average=0.005 s; distance=10 kB, estimate=10 kB; lsn=0/1B74358, redo lsn=0/1B74300
+2025-04-22 22:13:05.143 CEST [21772] LOG:  server process (PID 20280) was terminated by exception 0xC000013A
+2025-04-22 22:13:05.143 CEST [21772] DETAIL:  Failed process was running: 
+	      SELECT l.id, l.name, l.title, l.description, l.slug, l.created_at, l.published, l.published_at
+	      FROM lists l
+	      WHERE l.id = $1
+	    
+2025-04-22 22:13:05.143 CEST [21772] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-22 22:13:05.143 CEST [21772] LOG:  terminating any other active server processes
+2025-04-22 22:13:05.205 CEST [21772] LOG:  all server processes terminated; reinitializing
+2025-04-22 22:13:05.439 CEST [21772] LOG:  startup process (PID 14108) was terminated by exception 0xC0000142
+2025-04-22 22:13:05.439 CEST [21772] HINT:  See C include file "ntstatus.h" for a description of the hexadecimal value.
+2025-04-22 22:13:05.439 CEST [21772] LOG:  aborting startup due to startup process failure
+2025-04-22 22:13:05.441 CEST [21772] LOG:  database system is shut down
+2025-04-22 22:45:13.358 CEST [23768] LOG:  starting PostgreSQL 17.4 on x86_64-windows, compiled by msvc-19.42.34436, 64-bit
+2025-04-22 22:45:13.371 CEST [23768] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2025-04-22 22:45:13.371 CEST [23768] LOG:  listening on IPv6 address "::1", port 5432
+2025-04-22 22:45:13.546 CEST [25704] LOG:  database system was interrupted; last known up at 2025-04-22 21:42:35 CEST
+2025-04-22 22:45:14.747 CEST [25704] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-04-22 22:45:14.755 CEST [25704] LOG:  redo starts at 0/1B74300
+2025-04-22 22:45:14.755 CEST [25704] LOG:  invalid record length at 0/1B74408: expected at least 24, got 0
+2025-04-22 22:45:14.755 CEST [25704] LOG:  redo done at 0/1B743D0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-04-22 22:45:14.764 CEST [9328] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-04-22 22:45:14.791 CEST [9328] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.005 s, total=0.032 s; sync files=2, longest=0.003 s, average=0.003 s; distance=0 kB, estimate=0 kB; lsn=0/1B74408, redo lsn=0/1B74408
+2025-04-22 22:45:14.906 CEST [23768] LOG:  database system is ready to accept connections
+2025-04-22 23:20:14.848 CEST [9328] LOG:  checkpoint starting: time
+2025-04-22 23:20:15.233 CEST [9328] LOG:  checkpoint complete: wrote 4 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.332 s, sync=0.018 s, total=0.386 s; sync files=4, longest=0.012 s, average=0.005 s; distance=6 kB, estimate=6 kB; lsn=0/1B75CE0, redo lsn=0/1B75C88
+2025-04-22 23:30:14.254 CEST [9328] LOG:  checkpoint starting: time
+2025-04-22 23:30:14.411 CEST [9328] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.111 s, sync=0.009 s, total=0.157 s; sync files=2, longest=0.006 s, average=0.005 s; distance=5 kB, estimate=6 kB; lsn=0/1B77358, redo lsn=0/1B77300
+2025-04-22 23:35:14.429 CEST [9328] LOG:  checkpoint starting: time
+2025-04-22 23:35:14.587 CEST [9328] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.112 s, sync=0.009 s, total=0.159 s; sync files=2, longest=0.007 s, average=0.005 s; distance=5 kB, estimate=6 kB; lsn=0/1B78A98, redo lsn=0/1B78A40
+2025-04-22 23:40:14.602 CEST [9328] LOG:  checkpoint starting: time
+2025-04-22 23:40:14.759 CEST [9328] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.112 s, sync=0.008 s, total=0.158 s; sync files=2, longest=0.006 s, average=0.004 s; distance=6 kB, estimate=6 kB; lsn=0/1B7A2A0, redo lsn=0/1B7A248
+2025-04-22 23:45:14.771 CEST [9328] LOG:  checkpoint starting: time
+2025-04-22 23:45:14.905 CEST [9328] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.109 s, sync=0.006 s, total=0.134 s; sync files=2, longest=0.004 s, average=0.003 s; distance=6 kB, estimate=6 kB; lsn=0/1B7BB20, redo lsn=0/1B7BAC8

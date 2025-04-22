@@ -1,5 +1,6 @@
 import { map } from 'nanostores';
 import { getActiveList } from '@stores/urlListStore';
+import { showSuccess, showError } from '@stores/notificationStore';
 
 // UI State for URL operations
 export const listUIState = map({
@@ -19,6 +20,7 @@ export async function addUrlToList(listId, urlData) {
     if (isNaN(numericListId)) {
       console.error('Invalid list ID:', listId);
       listUIState.setKey('error', 'Invalid list ID');
+      showError('Invalid list ID');
       return null;
     }
     
@@ -56,10 +58,12 @@ export async function addUrlToList(listId, urlData) {
     const refreshedData = await fetchListDetails(numericListId);
     console.log('Refreshed list data:', refreshedData);
     
+    showSuccess('URL added successfully');
     return data;
   } catch (err) {
     console.error('Failed to add URL:', err);
     listUIState.setKey('error', 'Failed to add URL. Please try again.');
+    showError('Failed to add URL. Please try again.');
     return null;
   } finally {
     listUIState.setKey('isLoading', false);
@@ -76,6 +80,7 @@ export async function updateUrl(urlId, urlData) {
     
     if (!activeList) {
       listUIState.setKey('error', 'No active list found.');
+      showError('No active list found.');
       return false;
     }
 
@@ -98,11 +103,15 @@ export async function updateUrl(urlId, urlData) {
     // Refresh the list to get updated data
     await fetchListDetails(activeList.id);
     
+    // Show success notification
+    showSuccess('URL updated successfully');
+    
     // Return success
     return true;
   } catch (err) {
     console.error('Failed to update URL:', err);
     listUIState.setKey('error', 'Failed to update URL. Please try again.');
+    showError('Failed to update URL. Please try again.');
     return false;
   } finally {
     listUIState.setKey('isLoading', false);
@@ -119,6 +128,7 @@ export async function deleteUrl(urlId) {
     
     if (!activeList) {
       listUIState.setKey('error', 'No active list found.');
+      showError('No active list found.');
       return false;
     }
 
@@ -137,11 +147,15 @@ export async function deleteUrl(urlId) {
     // Refresh the list to get updated data
     await fetchListDetails(activeList.id);
     
+    // Show success notification
+    showSuccess('URL deleted successfully');
+    
     // Return success
     return true;
   } catch (err) {
     console.error('Failed to delete URL:', err);
     listUIState.setKey('error', 'Failed to delete URL. Please try again.');
+    showError('Failed to delete URL. Please try again.');
     return false;
   } finally {
     listUIState.setKey('isLoading', false);
@@ -165,6 +179,7 @@ export async function fetchListDetails(listId) {
   } catch (err) {
     console.error('Failed to fetch list details:', err);
     listUIState.setKey('error', 'Failed to load list details. Please try again.');
+    showError('Failed to load list details. Please try again.');
     return null;
   } finally {
     listUIState.setKey('isLoading', false);

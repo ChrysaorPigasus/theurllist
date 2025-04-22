@@ -34,7 +34,7 @@ export function UrlList({ urls }) {
   );
 }
 
-export default function AddUrlsToList({ listId }) {
+export default function AddUrlsToList({ listId, hideInput = false }) {
   const [url, setUrl] = useState('');
   const [feedback, setFeedback] = useState('');
   const { lists, activeListId } = useStore(listStore);
@@ -89,34 +89,38 @@ export default function AddUrlsToList({ listId }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Input
-          id="url"
-          label="Add URL to List"
-          type="url"
-          placeholder="https://example.com"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          disabled={isLoading}
-          success={feedback.includes('successfully') ? feedback : undefined}
-          error={(error || feedback.includes('empty')) ? (error || feedback) : undefined}
-        />
-      </div>
+      {!hideInput && (
+        <>
+          <div>
+            <Input
+              id="url"
+              label="Add URL to List"
+              type="url"
+              placeholder="https://example.com"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              disabled={isLoading}
+              success={feedback.includes('successfully') ? feedback : undefined}
+              error={(error || feedback.includes('empty')) ? (error || feedback) : undefined}
+            />
+          </div>
 
-      <Button
-        onClick={handleAddUrl}
-        disabled={isLoading || !url.trim()}
-        loading={isLoading}
-        variant="primary"
-        size="md"
-        icon={
-          <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        }
-      >
-        Add URL
-      </Button>
+          <Button
+            onClick={handleAddUrl}
+            disabled={isLoading || !url.trim()}
+            loading={isLoading}
+            variant="primary"
+            size="md"
+            icon={
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            }
+          >
+            Add URL
+          </Button>
+        </>
+      )}
 
       <UrlList urls={urls} />
     </div>

@@ -25,7 +25,7 @@ const Input = forwardRef(({
   size = 'md',
   className = '',
   required = false,
-  disabled = false,
+  disabled = false, // Set explicit default to false
   readOnly = false,
   prefix,
   suffix,
@@ -41,17 +41,23 @@ const Input = forwardRef(({
   const variantClasses = variants[variant] || variants.default;
   const sizeClasses = sizes[size];
 
+  // Normalize the disabled prop to boolean to avoid hydration issues
+  const isDisabled = Boolean(disabled);
+
   const handleChange = (e) => {
-    if (disabled || readOnly) return;
+    if (isDisabled || readOnly) return;
     if (props.onChange) props.onChange(e);
   };
 
-  // Convert null value to empty string to avoid React warnings
-  const safeValue = props.value === null ? '' : props.value;
+  // Convert null or undefined values to empty string to avoid React warnings
+  const safeValue = props.value === null || props.value === undefined ? '' : props.value;
   const inputProps = { ...props };
-  if (props.value !== undefined) {
+  if ('value' in props) {
     inputProps.value = safeValue;
   }
+  
+  // Remove the disabled prop from inputProps since we're passing isDisabled directly
+  delete inputProps.disabled;
 
   return (
     <div className={className}>
@@ -72,7 +78,7 @@ const Input = forwardRef(({
           id={id}
           name={name}
           required={required}
-          disabled={disabled}
+          disabled={isDisabled}
           readOnly={readOnly}
           className={`${baseClasses} ${variantClasses} ${sizeClasses}`}
           aria-invalid={error ? 'true' : 'false'}
@@ -83,7 +89,7 @@ const Input = forwardRef(({
           onKeyPress={onKeyPress}
           {...inputProps}
         />
-        {clearable && !disabled && !readOnly && (
+        {clearable && !isDisabled && !readOnly && (
           <button
             type="button"
             aria-label="Clear"

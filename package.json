@@ -68,6 +68,7 @@
   "dependencies": {
     "@astrojs/react": "^4.0.0",
     "@astrojs/tailwind": "^5.1.5",
+    "@microsoft/applicationinsights-web": "^3.3.6",
     "@nanostores/react": "^0.7.1",
     "astro": "^5.6.1",
     "nanostores": "^0.9.3",
@@ -77,6 +78,7 @@
     "postgres": "^3.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-toastify": "^11.0.5",
     "tailwindcss": "^3.3.3"
   },
   "devDependencies": {
@@ -85,6 +87,7 @@
     "@babel/register": "^7.25.9",
     "@cucumber/cucumber": "^11.2.0",
     "@playwright/test": "^1.52.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/cucumber": "^7.0.3",

@@ -7,7 +7,7 @@ global.fetch = vi.fn();
 vi.mock('nanostores', () => {
   const mapFn = () => {
     const store = {
-      get: vi.fn(() => ({})),
+      get: vi.fn(() => ({ notifications: [] })),
       set: vi.fn(),
       setKey: vi.fn()
     };

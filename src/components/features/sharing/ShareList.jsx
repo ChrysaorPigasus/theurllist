@@ -1,7 +1,8 @@
 // Feature: Sharing a List (FR009)
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, shareList } from '@stores/lists';
+import { showSuccess, showError, showInfo } from '@stores/notificationStore';
 import Button from '@ui/Button';
 import Input from '@ui/Input';
 import Card from '@ui/Card';
@@ -23,7 +24,6 @@ function getShareableUrl(list) {
 }
 
 export default function ShareList({ listId }) {
-  const [feedback, setFeedback] = useState('');
   const { lists, activeListId } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
   
@@ -33,10 +33,9 @@ export default function ShareList({ listId }) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareableUrl);
-      setFeedback('URL copied to clipboard!');
-      setTimeout(() => setFeedback(''), 3000);
+      showSuccess('URL copied to clipboard!');
     } catch (err) {
-      setFeedback('Failed to copy URL. Please try again.');
+      showError('Failed to copy URL. Please try again.');
     }
   };
 
@@ -47,12 +46,15 @@ export default function ShareList({ listId }) {
     switch (platform) {
       case 'twitter':
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareableUrl)}`);
+        showInfo('Opened Twitter sharing in a new window');
         break;
       case 'linkedin':
         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareableUrl)}`);
+        showInfo('Opened LinkedIn sharing in a new window');
         break;
       case 'email':
         window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${shareableUrl}`)}`;
+        showInfo('Opened email client');
         break;
       default:
         if (navigator.share) {
@@ -62,10 +64,10 @@ export default function ShareList({ listId }) {
               text,
               url: shareableUrl
             });
-            setFeedback('Shared successfully!');
+            showSuccess('Shared successfully!');
           } catch (err) {
             if (err.name !== 'AbortError') {
-              setFeedback('Failed to share. Please try again.');
+              showError('Failed to share. Please try again.');
             }
           }
         }
@@ -127,8 +129,6 @@ export default function ShareList({ listId }) {
             label="Shareable URL"
             value={shareableUrl}
             readOnly
-            success={feedback === 'URL copied to clipboard!' ? feedback : undefined}
-            error={feedback.includes('Failed') ? feedback : undefined}
           />
           <div className="mt-2">
             <Button onClick={handleCopy} variant="secondary" size="sm">

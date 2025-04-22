@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, deleteList } from '@stores/lists';
+import { showSuccess, showError } from '@stores/notificationStore';
 import Button from '@ui/Button';
 import Dialog from '@ui/Dialog';
 
 export default function DeleteList({ listId }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
   const { isLoading = false, error } = useStore(listUIState);
   
@@ -16,9 +16,10 @@ export default function DeleteList({ listId }) {
   const handleDelete = async () => {
     const success = await deleteList(listId);
     if (success) {
-      setFeedback('List deleted successfully');
+      showSuccess('List deleted successfully');
       setIsOpen(false);
-      setTimeout(() => setFeedback(''), 3000);
+    } else if (error) {
+      showError(`Failed to delete list: ${error}`);
     }
   };
 

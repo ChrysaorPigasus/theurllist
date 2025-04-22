@@ -1,12 +1,12 @@
 // Feature: Publishing a List (FR008)
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, publishList, unpublishList } from '@stores/lists';
+import { showSuccess, showError } from '@stores/notificationStore';
 import Button from '@ui/Button';
 import Card from '@ui/Card';
 
 export default function PublishList({ listId }) {
-  const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
   const isMounted = useRef(true);
@@ -30,18 +30,14 @@ export default function PublishList({ listId }) {
     
     const success = await publishList(listId);
     if (success && isMounted.current) {
-      setFeedback('List published successfully!');
+      showSuccess('List published successfully!');
       
       // Dispatch refresh event to update the UI
       window.dispatchEvent(new CustomEvent('refresh-list-data', { 
         detail: { listId: parseInt(listId) } 
       }));
-      
-      setTimeout(() => {
-        if (isMounted.current) {
-          setFeedback('');
-        }
-      }, 3000);
+    } else if (error) {
+      showError(`Failed to publish list: ${error}`);
     }
   };
 
@@ -50,18 +46,14 @@ export default function PublishList({ listId }) {
     
     const success = await unpublishList(listId);
     if (success && isMounted.current) {
-      setFeedback('List is now private.');
+      showSuccess('List is now private.');
       
       // Dispatch refresh event to update the UI
       window.dispatchEvent(new CustomEvent('refresh-list-data', { 
         detail: { listId: parseInt(listId) } 
       }));
-      
-      setTimeout(() => {
-        if (isMounted.current) {
-          setFeedback('');
-        }
-      }, 3000);
+    } else if (error) {
+      showError(`Failed to make list private: ${error}`);
     }
   };
 
@@ -114,10 +106,6 @@ export default function PublishList({ listId }) {
           >
             Publish List
           </Button>
-        )}
-
-        {feedback && !error && (
-          <p className="text-sm text-green-600">{feedback}</p>
         )}
 
         {error && (

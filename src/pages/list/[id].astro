@@ -59,7 +59,9 @@ try {
         </div>
       </div>
     ) : list ? (
-      <UrlList client:load listId={list.id} />
+      <div class="urlist-container">
+        <UrlList client:only="react" listId={list.id} />
+      </div>
     ) : null}
   </main>
 </Layout>
@@ -67,3 +69,19 @@ try {
 <script>
 // Add client-side navigation handling if needed
 </script>
+
+<style>
+  /* Ensure only one instance of space-y-6 is applied */
+  .urlist-container :global(.space-y-6) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
+    margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
+  }
+  
+  /* Prevent nested space-y-6 classes from applying twice */
+  .urlist-container :global(.space-y-6 .space-y-6) {
+    --tw-space-y-reverse: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+</style>

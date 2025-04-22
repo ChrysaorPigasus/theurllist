@@ -1,5 +1,6 @@
 import { map } from 'nanostores';
 import { isLoading, error, urlListStore } from '@stores/urlListStore';
+import { showSuccess, showError, showInfo } from '@stores/notificationStore';
 
 // Create dedicated stores for the lists module
 export const listStore = map({ lists: [] });
@@ -22,6 +23,7 @@ export async function initializeStore() {
   } catch (err) {
     console.error('Failed to initialize lists:', err);
     listUIState.setKey('error', 'Failed to load lists. Please try again.');
+    showError('Failed to load lists. Please try again.');
     return [];
   } finally {
     listUIState.setKey('isLoading', false);
@@ -57,6 +59,7 @@ export async function fetchLists() {
   } catch (err) {
     console.error('Failed to fetch lists:', err);
     listUIState.setKey('error', 'Failed to fetch lists. Please try again.');
+    showError('Failed to fetch lists. Please try again.');
     return [];
   } finally {
     listUIState.setKey('isLoading', false);
@@ -95,10 +98,12 @@ export async function createList(listData) {
     const currentListStoreData = listStore.get().lists;
     listStore.setKey('lists', [...currentListStoreData, newList]);
     
+    showSuccess('List created successfully');
     return newList;
   } catch (err) {
     console.error('Failed to create list:', err);
     listUIState.setKey('error', 'Failed to create list. Please try again.');
+    showError('Failed to create list. Please try again.');
     return null;
   } finally {
     listUIState.setKey('isLoading', false);
@@ -131,10 +136,12 @@ export async function deleteList(listId) {
       urlListStore.setKey('activeListId', null);
     }
     
+    showSuccess('List deleted successfully');
     return true;
   } catch (err) {
     console.error('Failed to delete list:', err);
     listUIState.setKey('error', 'Failed to delete list. Please try again.');
+    showError('Failed to delete list. Please try again.');
     return false;
   } finally {
     listUIState.setKey('isLoading', false);
@@ -169,10 +176,12 @@ export async function fetchListDetails(listId) {
     listStore.setKey('lists', updatedLists);
     urlListStore.setKey('lists', updatedLists);
     
+    showInfo('List details loaded');
     return listDetails;
   } catch (err) {
     console.error('Failed to fetch list details:', err);
     listUIState.setKey('error', 'Failed to fetch list details. Please try again.');
+    showError('Failed to fetch list details. Please try again.');
     return null;
   } finally {
     listUIState.setKey('isLoading', false);
