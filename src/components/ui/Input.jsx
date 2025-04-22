@@ -4,6 +4,8 @@ const variants = {
   default: 'border-gray-300 focus:border-brand-500 focus:ring-brand-500',
   error: 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500',
   success: 'border-green-300 text-green-900 placeholder-green-300 focus:border-green-500 focus:ring-green-500',
+  filled: 'bg-gray-100 border border-gray-300 focus:bg-white',
+  flushed: 'border-0 border-b-2 border-gray-300 focus:border-brand-500 rounded-none',
 };
 
 const sizes = {
@@ -24,12 +26,32 @@ const Input = forwardRef(({
   className = '',
   required = false,
   disabled = false,
+  readOnly = false,
+  prefix,
+  suffix,
+  clearable = false,
+  onClear,
+  onFocus,
+  onBlur,
+  onKeyPress,
+  variant = 'default',
   ...props
 }, ref) => {
-  const variant = error ? 'error' : success ? 'success' : 'default';
   const baseClasses = 'block w-full rounded-md shadow-sm disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed';
-  const variantClasses = variants[variant];
+  const variantClasses = variants[variant] || variants.default;
   const sizeClasses = sizes[size];
+
+  const handleChange = (e) => {
+    if (disabled || readOnly) return;
+    if (props.onChange) props.onChange(e);
+  };
+
+  // Convert null value to empty string to avoid React warnings
+  const safeValue = props.value === null ? '' : props.value;
+  const inputProps = { ...props };
+  if (props.value !== undefined) {
+    inputProps.value = safeValue;
+  }
 
   return (
     <div className={className}>
@@ -42,7 +64,8 @@ const Input = forwardRef(({
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      <div className="mt-1 relative">
+      <div className="mt-1 relative flex items-center">
+        {prefix && <span data-testid="prefix" className="mr-2">{prefix}</span>}
         <input
           ref={ref}
           type={type}
@@ -50,11 +73,29 @@ const Input = forwardRef(({
           name={name}
           required={required}
           disabled={disabled}
+          readOnly={readOnly}
           className={`${baseClasses} ${variantClasses} ${sizeClasses}`}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={helperText ? `${id}-description` : undefined}
-          {...props}
+          onChange={handleChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onKeyPress={onKeyPress}
+          {...inputProps}
         />
+        {clearable && !disabled && !readOnly && (
+          <button
+            type="button"
+            aria-label="Clear"
+            className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            onClick={onClear}
+            tabIndex={0}
+            data-testid="clear-button"
+          >
+            ×
+          </button>
+        )}
+        {suffix && <span data-testid="suffix" className="ml-2">{suffix}</span>}
         {error && (
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
             <svg 

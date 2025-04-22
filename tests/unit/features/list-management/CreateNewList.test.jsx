@@ -1,23 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-
-// Mocks need to be defined before importing the component
+// Mock the @nanostores/react module first
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => {
-    // Return the appropriate mock data based on the store
-    if (store === listStore) {
-      return { lists: listStore.get().lists };
-    }
-    if (store === listUIState) {
-      return listUIState.get();
-    }
-    return store.get ? store.get() : {};
-  })
+  useStore: vi.fn()
 }));
 
-// Mock the stores/lists module
+// Mock @stores/lists BEFORE importing the component
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
@@ -34,9 +24,10 @@ vi.mock('@stores/lists', () => {
   };
 });
 
-// Import the component and mocked dependencies after mock definitions
-import CreateNewList from '@features/list-management/CreateNewList';
+// Import mocked modules after mocking
+import { useStore } from '@nanostores/react';
 import { listStore, listUIState, createList } from '@stores/lists';
+import CreateNewList from '@features/list-management/CreateNewList';
 
 describe('CreateNewList', () => {
   beforeEach(() => {
@@ -46,6 +37,17 @@ describe('CreateNewList', () => {
     listStore.get.mockReturnValue({ lists: [] });
     listUIState.get.mockReturnValue({ isLoading: false, error: null });
     createList.mockResolvedValue(true);
+    
+    // Setup useStore mock implementation
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return { lists: listStore.get().lists };
+      }
+      if (store === listUIState) {
+        return listUIState.get();
+      }
+      return store.get ? store.get() : {};
+    });
   });
 
   it('renders without crashing', () => {
@@ -110,8 +112,10 @@ describe('CreateNewList', () => {
     // Look for a disabled button with loading state
     const createButton = screen.getByText('Create List');
     expect(createButton).toBeDisabled();
-    // Check for SVG spinner
-    expect(document.querySelector('svg.animate-spin')).toBeInTheDocument();
+    
+    // Check for loading spinner instead of relying on role="status"
+    const loadingSpinner = document.querySelector('.animate-spin');
+    expect(loadingSpinner).toBeInTheDocument();
   });
 
   it('shows error message if list creation fails', () => {

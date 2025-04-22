@@ -32,11 +32,17 @@ export default function Button({
   type = 'button',
   icon,
   href,
+  block = false,
+  rounded = false,
   ...props
 }) {
   const baseClasses = 'inline-flex items-center justify-center border font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed';
   const variantClasses = loading ? loadingStates[variant] : variants[variant];
   const sizeClasses = sizes[size];
+  const blockClasses = block ? 'w-full' : '';
+  const roundedClasses = rounded ? 'rounded-full' : 'rounded-md';
+  
+  const finalBaseClasses = baseClasses.replace('rounded-md', '');
   
   const buttonContent = (
     <>
@@ -68,11 +74,13 @@ export default function Button({
     </>
   );
   
+  const combinedClasses = `${finalBaseClasses} ${roundedClasses} ${variantClasses} ${sizeClasses} ${blockClasses} ${className}`.trim();
+  
   if (href) {
     return (
       <a
         href={href}
-        className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+        className={combinedClasses}
         {...props}
       >
         {buttonContent}
@@ -84,7 +92,8 @@ export default function Button({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`}
+      className={combinedClasses}
+      aria-busy={loading ? 'true' : undefined}
       {...props}
     >
       {buttonContent}

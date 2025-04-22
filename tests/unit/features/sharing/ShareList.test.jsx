@@ -194,7 +194,7 @@ describe('ShareList', () => {
     expect(window.location.href).toMatch(/^mailto:/);
   });
 
-  it('returns null when activeList is not found', () => {
+  it('renders empty state when activeList is not found', () => {
     // Override useStore to return no active list
     useStore.mockImplementation((store) => {
       if (store === listsStore.listStore) {
@@ -209,8 +209,9 @@ describe('ShareList', () => {
       return {};
     });
 
-    const { container } = render(<ShareList listId="999" />);
-    expect(container).toBeEmptyDOMElement();
+    render(<ShareList listId="999" />);
+    expect(screen.getByText('Empty List')).toBeInTheDocument();
+    expect(screen.getByText('This list is empty or could not be found.')).toBeInTheDocument();
   });
 
   it('displays error message when there is an error', () => {

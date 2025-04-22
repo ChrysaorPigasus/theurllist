@@ -256,9 +256,25 @@ export default function ViewUrlsInList({ listId }) {
   if (isLoading) {
     return (
       <Card className="max-w-4xl mx-auto">
-        <div className="flex justify-center py-12">
+        <div className="flex justify-center py-12" role="status" aria-label="Loading">
           <Spinner size="lg" />
         </div>
+      </Card>
+    );
+  }
+
+  if (!activeList) {
+    return (
+      <Card className="max-w-full mx-auto">
+        <EmptyState
+          title="No list selected"
+          description="Please select a list to view URLs."
+          icon={() => (
+            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2zm0 2v10l4.5-3 3 2.5 4.5-3.5 4 4V6H4z" />
+            </svg>
+          )}
+        />
       </Card>
     );
   }

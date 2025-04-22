@@ -4,6 +4,51 @@ import pg from 'pg';
 import { startMockServer, stopMockServer } from '../mocks/api-mocks';
 import { env, integrations, logIntegrationConfig } from './environment';
 
+// Global error handling utilities
+const setupGlobalErrorHandlers = () => {
+  // Store original handlers
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  
+  // Override console.error to help catch unhandled errors
+  console.error = (...args) => {
+    // Log with original handler
+    originalConsoleError(...args);
+    
+    // If first argument is an Error, it might be unhandled
+    if (args[0] instanceof Error && !args[0]._handled) {
+      args[0]._handled = true; // Mark as handled to prevent infinite loops
+      if (typeof viMock !== 'undefined' && viMock.fn) {
+        // In a vitest context
+        throw args[0];
+      }
+    }
+  };
+  
+  // Setup handlers for the current environment
+  if (typeof window !== 'undefined') {
+    // Browser environment - handle promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error(new Error(`Unhandled promise rejection: ${event.reason}`));
+    });
+  } else if (typeof process !== 'undefined') {
+    // Node environment
+    process.on('unhandledRejection', (reason) => {
+      console.error(new Error(`Unhandled promise rejection: ${reason}`));
+    });
+  }
+  
+  return () => {
+    // Return a cleanup function that restores original handlers
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+    
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('unhandledrejection', console.error);
+    }
+  };
+};
+
 // Voeg een veilige manier toe om 'vi' te importeren alleen als het nodig is
 let viMock;
 try {
@@ -26,6 +71,13 @@ try {
       return mockFn;
     }
   };
+}
+
+// Global fetch mock for all unit tests
+if (!globalThis.fetch) {
+  globalThis.fetch = viMock.fn().mockImplementation(async (...args) => {
+    throw new Error('fetch is not mocked. Please mock fetch in your test or provide a global mock implementation.');
+  });
 }
 
 const services = {
@@ -162,6 +214,7 @@ const initTestEnvironment = async () => {
   await setupDatabase();
   await setupApiServer();
   await setupAuth();
+  setupGlobalErrorHandlers();
   
   console.log('Test environment initialized successfully!');
 };

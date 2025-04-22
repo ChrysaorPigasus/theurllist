@@ -2,21 +2,12 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-// Mock dependencies before importing components
+// Mock modules first, before using any variables
 vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn((store) => {
-    if (store === listStore) {
-      return { lists: mockLists };
-    }
-    if (store === listUIState) {
-      return { isLoading: mockIsLoading, error: mockError };
-    }
-    return store.get ? store.get() : {};
-  })
+  useStore: vi.fn()
 }));
 
-// Mock the stores module using the factory pattern
-// This approach avoids hoisting issues with vi.mock
+// Use inline mock factory functions to avoid hoisting issues
 vi.mock('@stores/lists', () => {
   return {
     listStore: {
@@ -35,19 +26,21 @@ vi.mock('@stores/lists', () => {
   };
 });
 
-// Define mock values
+// Import components and mocked modules after all mocks are set up
+import { useStore } from '@nanostores/react';
+import { listStore, listUIState, deleteList } from '@stores/lists';
+import DeleteList from '@features/list-management/DeleteList';
+
+// Define mutable state for dynamic mock responses
 const mockLists = [
   { id: '123', name: 'Test List', urls: [] },
   { id: '456', name: 'Another List', urls: [] }
 ];
-let mockIsLoading = false;
-let mockError = null;
-
-// Import the component and mocked dependencies after mock definitions
-import { listStore, listUIState, deleteList } from '@stores/lists';
-import DeleteList from '@features/list-management/DeleteList';
 
 describe('DeleteList', () => {
+  let mockIsLoading = false;
+  let mockError = null;
+
   beforeEach(() => {
     vi.clearAllMocks();
     
@@ -61,7 +54,18 @@ describe('DeleteList', () => {
     mockError = null;
     
     // Default successful deletion
-    vi.mocked(deleteList).mockResolvedValue(true);
+    deleteList.mockResolvedValue(true);
+    
+    // Setup useStore mock implementation
+    useStore.mockImplementation((store) => {
+      if (store === listStore) {
+        return { lists: mockLists };
+      }
+      if (store === listUIState) {
+        return { isLoading: mockIsLoading, error: mockError };
+      }
+      return store.get ? store.get() : {};
+    });
   });
   
   it('renders without crashing', () => {
@@ -118,7 +122,7 @@ describe('DeleteList', () => {
   
   it('shows loading state while deleting', async () => {
     // Setup a delayed promise for the deleteList function
-    vi.mocked(deleteList).mockImplementation(() => {
+    deleteList.mockImplementation(() => {
       return new Promise(resolve => {
         mockIsLoading = true;
         setTimeout(() => {
@@ -145,7 +149,7 @@ describe('DeleteList', () => {
   
   it('shows error message if deletion fails', async () => {
     // Mock error state
-    vi.mocked(deleteList).mockImplementation(() => {
+    deleteList.mockImplementation(() => {
       return Promise.resolve().then(() => {
         mockError = 'Failed to delete list';
         return false;

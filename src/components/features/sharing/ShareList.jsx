@@ -5,6 +5,8 @@ import { listStore, listUIState, shareList } from '@stores/lists';
 import Button from '@ui/Button';
 import Input from '@ui/Input';
 import Card from '@ui/Card';
+import EmptyState from '@ui/EmptyState';
+import Spinner from '@ui/Spinner';
 
 // Function to create a shareable URL for a list
 function getShareableUrl(list) {
@@ -70,8 +72,46 @@ export default function ShareList({ listId }) {
     }
   };
 
+  if (isLoading) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <div className="flex justify-center py-12" role="status" aria-label="Loading">
+          <Spinner size="lg" />
+        </div>
+      </Card>
+    );
+  }
+
   if (!activeList) {
-    return null;
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <EmptyState
+          title="Empty List"
+          description="This list is empty or could not be found."
+          icon={() => (
+            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2zm0 2v10l4.5-3 3 2.5 4.5-3.5 4 4V6H4z" />
+            </svg>
+          )}
+        />
+      </Card>
+    );
+  }
+
+  if (!activeList.urls || activeList.urls.length === 0) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <EmptyState
+          title="Empty List"
+          description="There are no urls in this list."
+          icon={() => (
+            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2zm0 2v10l4.5-3 3 2.5 4.5-3.5 4 4V6H4z" />
+            </svg>
+          )}
+        />
+      </Card>
+    );
   }
 
   return (

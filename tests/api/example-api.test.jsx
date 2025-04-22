@@ -1,5 +1,5 @@
 // Import Vitest functions dynamically
-const { describe, it, expect, beforeEach } = await import('vitest');
+const { describe, it, expect, beforeEach, vi } = await import('vitest');
 
 // Direct importeren van de environment configuratie kan problemen geven
 // Daarom gebruiken we een isolatie patroon met expliciete fallbacks
@@ -34,6 +34,10 @@ try {
   // Gebruik de fallback waarden die hierboven zijn gedefinieerd
 }
 
+// Create a proper fetch mock that has the right mock functions
+const fetchMock = vi.fn();
+global.fetch = fetchMock;
+
 describe('API Tests', () => {
   // Bepaal of we de test moeten overslaan op basis van de omgeving
   let shouldSkip = false;
@@ -49,6 +53,11 @@ describe('API Tests', () => {
     it.skip('API tests zijn uitgeschakeld in deze omgeving', () => {});
     return;
   }
+
+  // Reset mocks before each test
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
 
   // Maak een mock API response als fallback
   const mockApiData = { success: true, data: [{ id: 1, name: 'Test Item' }] };
@@ -73,22 +82,44 @@ describe('API Tests', () => {
     
     console.log(`Making API request to: ${apiUrl}`);
     
+    // Setup the mock with a response that handles all the necessary properties and methods
+    fetchMock.mockImplementation(() => 
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve(mockApiData),
+        text: () => Promise.resolve(JSON.stringify(mockApiData)),
+        clone: () => ({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () => Promise.resolve(mockApiData),
+          text: () => Promise.resolve(JSON.stringify(mockApiData))
+        })
+      })
+    );
+    
     try {
       const response = await fetch(apiUrl);
       expect(response).toBeDefined();
+      expect(response.ok).toBe(true);
       
-      if (response.ok) {
-        const data = await response.json();
-        expect(data).toBeDefined();
-      } else {
-        console.log(`API request failed with status: ${response.status}`);
-        // Test kan nog steeds slagen met mock data
-        expect(mockApiData).toBeDefined();
-      }
+      const data = await response.json();
+      expect(data).toBeDefined();
+      expect(data).toEqual(mockApiData);
+      
+      // Update the expectation to match how fetch is now called in modern fetch implementations
+      // This tests that fetch was called, not exactly how it was called
+      expect(fetchMock).toHaveBeenCalled();
+      // Make sure the URL passed to fetch contains our expected URL
+      const firstCall = fetchMock.mock.calls[0];
+      const requestUrl = firstCall?.[0]?.url || firstCall?.[0];
+      expect(requestUrl).toContain('/api/v1/data');
     } catch (error) {
-      console.warn(`API request error: ${error.message}`);
-      // Test kan nog steeds slagen met mock data
-      expect(mockApiData).toBeDefined();
+      // Improved error logging and handling
+      console.warn(`API request error details:`, error);
+      fail(`The test should not throw an error with our properly mocked fetch: ${error.message}`);
     }
   });
 });

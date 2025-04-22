@@ -17,11 +17,16 @@ export async function initializeStore() {
 
   try {
     const response = await fetch('/api/lists');
+    if (!response.ok) {
+      throw new Error(`Failed to load lists: ${response.statusText}`);
+    }
     const lists = await response.json();
     urlListStore.set({ lists, activeListId: null });
+    return true;
   } catch (err) {
     console.error('Failed to load lists:', err);
     error.set('Failed to load lists. Please try again.');
+    return false;
   } finally {
     isLoading.set(false);
   }
@@ -53,16 +58,45 @@ export async function createList(name, customUrl = null) {
 
 // Delete a list
 export async function deleteList(listId) {
+  // Input validation
+  if (!listId) {
+    error.set('List ID is required');
+    return false;
+  }
+
+  // Type coercion to handle both string and number IDs
+  const numericListId = typeof listId === 'string' ? parseInt(listId, 10) : listId;
+  
+  if (isNaN(numericListId)) {
+    error.set('Invalid list ID format');
+    return false;
+  }
+
+  // Check if the list exists
+  const currentLists = urlListStore.get().lists;
+  const listToDelete = currentLists.find(list => 
+    list.id === numericListId || list.id === listId.toString()
+  );
+  
+  if (!listToDelete) {
+    error.set('List not found');
+    return false;
+  }
+
   isLoading.set(true);
   error.set(null);
 
   try {
-    await fetch(`/api/lists/${listId}`, { method: 'DELETE' });
-    const currentLists = urlListStore.get().lists;
+    const response = await fetch(`/api/lists/${numericListId}`, { method: 'DELETE' });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete list: ${response.statusText}`);
+    }
+    
     urlListStore.set({
       ...urlListStore.get(),
-      lists: currentLists.filter(list => list.id !== listId),
-      activeListId: urlListStore.get().activeListId === listId ? null : urlListStore.get().activeListId
+      lists: currentLists.filter(list => list.id !== numericListId && list.id !== listId.toString()),
+      activeListId: urlListStore.get().activeListId === numericListId ? null : urlListStore.get().activeListId
     });
     return true;
   } catch (err) {
@@ -76,20 +110,62 @@ export async function deleteList(listId) {
 
 // Update a list's custom URL
 export async function updateCustomUrl(listId, customUrl) {
+  // Input validation
+  if (!listId) {
+    error.set('List ID is required');
+    return false;
+  }
+  
+  // Type coercion to handle both string and number IDs
+  const numericListId = typeof listId === 'string' ? parseInt(listId, 10) : listId;
+  
+  if (isNaN(numericListId)) {
+    error.set('Invalid list ID format');
+    return false;
+  }
+
+  if (!customUrl || customUrl === '') {
+    error.set('Custom URL is required');
+    return false;
+  }
+
+  // Check if the list exists
+  const currentLists = urlListStore.get().lists;
+  const listToUpdate = currentLists.find(list => 
+    list.id === numericListId || list.id === listId.toString()
+  );
+  
+  if (!listToUpdate) {
+    error.set('List not found');
+    return false;
+  }
+
+  // Validate custom URL format
+  const validUrlPattern = /^[a-zA-Z0-9-_]+$/;
+  if (!validUrlPattern.test(customUrl)) {
+    error.set('Custom URL cannot contain spaces or special characters');
+    return false;
+  }
+
   isLoading.set(true);
   error.set(null);
 
   try {
-    const response = await fetch(`/api/lists/${listId}/custom-url`, {
+    const response = await fetch(`/api/lists/${numericListId}/custom-url`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ customUrl })
     });
     
+    if (!response.ok) {
+      throw new Error(`Failed to update custom URL: ${response.statusText}`);
+    }
+    
     const updatedList = await response.json();
-    const currentLists = urlListStore.get().lists;
     const updatedLists = currentLists.map(list => 
-      list.id === listId ? { ...list, customUrl } : list
+      (list.id === numericListId || list.id === listId.toString()) 
+        ? { ...list, customUrl } 
+        : list
     );
     
     urlListStore.set({ ...urlListStore.get(), lists: updatedLists });

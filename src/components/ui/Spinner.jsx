@@ -11,7 +11,10 @@ const sizes = {
 export default function Spinner({ 
   size = 'md', 
   className = '',
-  light = false 
+  light = false,
+  role = undefined,
+  'aria-label': ariaLabel = 'Loading',
+  ...props
 }) {
   const sizeClasses = sizes[size];
   const colorClasses = light ? 'text-white' : 'text-brand-600';
@@ -23,6 +26,9 @@ export default function Spinner({
       fill="none"
       viewBox="0 0 24 24"
       data-testid="spinner"
+      role={role}
+      aria-label={ariaLabel}
+      {...props}
     >
       <circle
         className="opacity-25"

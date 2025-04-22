@@ -94,10 +94,10 @@ module.exports = defineConfig({
         singleThread: testType === 'api', // Run API tests in single thread
       },
     },
-    // Coverage configuration - behouden van originele instellingen maar met toevoeging van json reporter
+    // Verbeterde code coverage configuratie
     coverage: {
       provider: 'v8', // Gebruik de V8 coverage provider
-      reporter: ['text', 'html', 'lcov', 'json'], // Rapportageformaten
+      reporter: ['text', 'html', 'lcov', 'json-summary'], // Voeg json-summary toe voor tools en dashboards
       reportsDirectory: './coverage', // Output directory
       exclude: [
         'node_modules/**',
@@ -106,7 +106,15 @@ module.exports = defineConfig({
         '**/*.spec.{js,jsx,ts,tsx}',
         'src/types/**',
         'src/utils/init.sql',
-      ]
+      ],
+      lines: 80, // Stel coverage drempelwaarden in op 80%
+      functions: 80,
+      branches: 70,
+      statements: 80,
+      // Negeer coverage voor onderhoudsfuncties zoals API endpoints, initialisatie functie etc.
+      excludeNodeModules: true,
+      perFile: true, // Controleer coverage per bestand
+      all: true, // Meten ook bestanden die niet direct getest worden
     }
   },
   resolve: {

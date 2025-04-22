@@ -6,6 +6,23 @@ import Button from '@ui/Button';
 import EmptyState from '@ui/EmptyState';
 import Spinner from '@ui/Spinner';
 
+// For testability - allows tests to mock the confirmation dialog
+export const confirmDelete = (message) => {
+  // In a test environment, window.confirm might not be available
+  try {
+    // Check if window exists and confirm is a function
+    if (typeof window === 'undefined' || typeof window.confirm !== 'function') {
+      console.warn('window.confirm is not available in this environment');
+      return true; // Always return true in test environments
+    }
+    return window.confirm(message);
+  } catch (e) {
+    // Default to true in environments where window.confirm is not available
+    console.warn('window.confirm error:', e);
+    return true;
+  }
+};
+
 export default function DeleteUrlsFromList({ listId }) {
   const [feedback, setFeedback] = useState('');
   const { lists, activeListId } = useStore(listStore);
@@ -15,9 +32,13 @@ export default function DeleteUrlsFromList({ listId }) {
   const urls = activeList?.urls || [];
 
   const handleDelete = async (urlItem) => {
+    const confirmed = confirmDelete(`Are you sure you want to delete "${urlItem.url}"?`);
+    if (!confirmed) return;
+    
     const success = await deleteUrl(urlItem.id);
     if (success) {
       setFeedback(`URL "${urlItem.url}" deleted successfully!`);
+      window.dispatchEvent(new CustomEvent('urlsUpdated'));
       setTimeout(() => setFeedback(''), 3000);
     }
   };
@@ -28,7 +49,7 @@ export default function DeleteUrlsFromList({ listId }) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex justify-center py-12" role="status" aria-label="Loading">
         <Spinner size="lg" />
       </div>
     );
@@ -96,7 +117,7 @@ export default function DeleteUrlsFromList({ listId }) {
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293-1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3">

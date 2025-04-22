@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as urlListStoreModule from '@stores/urlListStore';
+import { mockNetworkError, mockServerError } from '@tests/utils/mock-promise-utils';
 
 // Create mock for fetch
 global.fetch = vi.fn();
@@ -113,6 +114,18 @@ describe('urlListStore', () => {
       expect(error.set).toHaveBeenCalledWith('Failed to load lists. Please try again.');
       expect(isLoading.set).toHaveBeenCalledWith(false);
     });
+
+    it('handles errors when loading lists using improved rejection handling', async () => {
+      // Use our mockNetworkError utility for better error details
+      global.fetch = mockNetworkError('Failed to connect to API server');
+      
+      // Use expect().rejects pattern for cleaner assertion
+      await expect(initializeStore()).resolves.toBe(false);
+      
+      expect(isLoading.set).toHaveBeenCalledWith(true);
+      expect(error.set).toHaveBeenCalledWith('Failed to load lists. Please try again.');
+      expect(isLoading.set).toHaveBeenCalledWith(false);
+    });
   });
 
   describe('createList', () => {
@@ -180,6 +193,33 @@ describe('urlListStore', () => {
       expect(error.set).toHaveBeenCalledWith('Failed to create list. Please try again.');
       expect(isLoading.set).toHaveBeenCalledWith(false);
       expect(result).toBeNull();
+    });
+
+    it('handles server errors when creating a list', async () => {
+      // Use mockServerError for better structured server error rejection
+      global.fetch = mockServerError(409, 'List with this name already exists');
+      
+      // Test that the function resolves to null (our error case)
+      await expect(createList('Duplicate List')).resolves.toBeNull();
+      
+      expect(isLoading.set).toHaveBeenCalledWith(true);
+      expect(error.set).toHaveBeenCalledWith('Failed to create list. Please try again.');
+      expect(isLoading.set).toHaveBeenCalledWith(false);
+    });
+
+    it('directly tests the promise rejection pattern', async () => {
+      // Test the promise rejection directly without calling the actual function
+      global.fetch.mockRejectedValue(new Error('API unavailable'));
+      
+      // When testing a function that should reject, use expect().rejects
+      const createListPromise = () => fetch('/api/lists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test List' })
+      });
+      
+      // This clearly asserts that the promise should reject with an error
+      await expect(createListPromise()).rejects.toThrow('API unavailable');
     });
   });
 

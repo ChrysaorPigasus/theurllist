@@ -8,9 +8,11 @@ export default function EmptyState({
   action,
   actionText,
   className = '',
+  role = undefined,
+  'aria-label': ariaLabel,
 }) {
   return (
-    <div className={`text-center ${className}`}>
+    <div className={`text-center ${className}`} role={role} aria-label={ariaLabel}>
       {Icon && (
         <div className="mx-auto h-12 w-12 text-gray-400">
           <Icon />
