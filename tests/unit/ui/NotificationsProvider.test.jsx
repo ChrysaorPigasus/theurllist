@@ -3,13 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import NotificationsProvider from '@components/ui/NotificationsProvider';
 import { notificationStore, showSuccess, showError } from '@stores/notificationStore';
+
+// Mock dependencies - maar gebruik import in plaats van require
+import * as reactNanostores from '@nanostores/react';
+
+// Mock toast
 import { toast } from 'react-toastify';
 
-// Mock dependencies
-vi.mock('@nanostores/react', () => ({
-  useStore: vi.fn(() => ({ notifications: [] }))
-}));
-
+// Mock react-toastify
 vi.mock('react-toastify', () => ({
   ToastContainer: vi.fn(() => <div data-testid="toast-container" />),
   toast: {
@@ -27,8 +28,14 @@ vi.mock('react-toastify', () => ({
   }
 }));
 
+// Mock nanostores/react
+vi.mock('@nanostores/react', () => ({
+  useStore: vi.fn(() => ({ notifications: [] }))
+}));
+
 describe('NotificationsProvider', () => {
-  const useStoreMock = vi.spyOn(require('@nanostores/react'), 'useStore');
+  // Direct mock van de geïmporteerde module
+  const useStoreMock = vi.spyOn(reactNanostores, 'useStore');
   
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,7 +59,8 @@ describe('NotificationsProvider', () => {
     render(<NotificationsProvider />);
     
     // Check that toast was called for each notification
-    expect(toast).toHaveBeenCalledTimes(2);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledTimes(1);
     
     // The notifications should now be marked as displayed
     expect(mockNotifications[0].displayed).toBe(true);
@@ -71,6 +79,7 @@ describe('NotificationsProvider', () => {
     render(<NotificationsProvider />);
     
     // Check that toast was called only once (for the non-displayed notification)
-    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast.warning).toHaveBeenCalledTimes(1);
+    expect(toast.info).not.toHaveBeenCalled();
   });
 });

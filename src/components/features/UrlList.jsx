@@ -2,6 +2,8 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, initializeStore, setActiveList, fetchListDetails, fetchLists } from '@stores/lists';
+import { showSuccess, showError, showInfo } from '@stores/notificationStore';
+import { publishList, unpublishList } from '@stores/lists/sharingStore';
 
 // Import feature-specific components from their respective directories
 import { ViewUrlsInList, AddUrlsToList } from '@features/url-management';
@@ -261,6 +263,12 @@ function ConsolidatedUrlManagementSection({ listId }) {
   
   // Handle copy URL function
   const handleCopy = async () => {
+    // Controleer of de lijst gepubliceerd is voordat de URL wordt gekopieerd
+    if (!isPublished) {
+      showError('This list is not published. Publish it first before sharing.');
+      return;
+    }
+    
     try {
       await navigator.clipboard.writeText(shareableUrl);
       showSuccess('URL copied to clipboard! You can now share this link with others.');
@@ -272,6 +280,12 @@ function ConsolidatedUrlManagementSection({ listId }) {
   // Handle social sharing function
   const handleShare = async (platform) => {
     if (!activeList) return;
+    
+    // Controleer of de lijst gepubliceerd is voordat delen wordt toegestaan
+    if (!isPublished) {
+      showError('This list is not published. Publish it first before sharing.');
+      return;
+    }
     
     const title = `Check out my URL list: ${activeList.name}`;
     const text = `I've shared a collection of URLs with you on The Urlist`;
@@ -387,6 +401,22 @@ function ConsolidatedUrlManagementSection({ listId }) {
                                 <p className="mt-1 max-w-2xl text-sm text-gray-500" id="card-description">
                                   Share your list with others via URL or social media
                                 </p>
+                                {!isPublished && (
+                                  <div className="mt-2 rounded-md bg-amber-50 p-3">
+                                    <div className="flex">
+                                      <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                      </div>
+                                      <div className="ml-3">
+                                        <p className="text-sm font-medium text-amber-800">
+                                          This list is not published yet. You need to publish it first to share it with others.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                                 <div className="mt-1 relative flex items-center">
                                   <input 
                                     type="text" 
@@ -395,6 +425,7 @@ function ConsolidatedUrlManagementSection({ listId }) {
                                     className="block w-full rounded-md shadow-sm disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed border-gray-300 focus:border-brand-500 focus:ring-brand-500 px-3 py-2 text-base leading-6" 
                                     aria-invalid="false" 
                                     value={shareableUrl}
+                                    disabled={!isPublished}
                                   />
                                 </div>
                               </div>
@@ -407,11 +438,12 @@ function ConsolidatedUrlManagementSection({ listId }) {
                                 <button 
                                   type="button" 
                                   onClick={() => handleShare('twitter')} 
+                                  disabled={!isPublished}
                                   className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
                                 >
                                   <span className="mr-2">
                                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 a4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
                                     </svg>
                                   </span>
                                   Twitter
@@ -419,6 +451,7 @@ function ConsolidatedUrlManagementSection({ listId }) {
                                 <button 
                                   type="button" 
                                   onClick={() => handleShare('linkedin')}
+                                  disabled={!isPublished}
                                   className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
                                 >
                                   <span className="mr-2">
@@ -431,6 +464,7 @@ function ConsolidatedUrlManagementSection({ listId }) {
                                 <button 
                                   type="button" 
                                   onClick={() => handleShare('email')}
+                                  disabled={!isPublished}
                                   className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
                                 >
                                   <span className="mr-2">
@@ -443,6 +477,7 @@ function ConsolidatedUrlManagementSection({ listId }) {
                                 <button 
                                   type="button" 
                                   onClick={handleCopy}
+                                  disabled={!isPublished}
                                   className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
                                 >
                                   Copy URL
