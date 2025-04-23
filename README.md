@@ -4,7 +4,7 @@ A modern web application for creating, managing, and sharing collections of URLs
 
 ## Features
 
-- Create new URL lists with custom names (FR001)
+- Create new URL lists with custom names and descriptions (FR001)
 - Add URLs to existing lists (FR002)
 - View all URLs in a list (FR003)
 - Edit URLs within lists (FR004)
@@ -22,8 +22,9 @@ A modern web application for creating, managing, and sharing collections of URLs
 - **Frontend Framework**: [Astro](https://astro.build) with React components
 - **Styling**: [Tailwind CSS](https://tailwindcss.com)
 - **State Management**: [Nanostores](https://github.com/nanostores/nanostores)
-- **Database**: PostgreSQL
-- **Database Client**: [postgres](https://github.com/porsager/postgres)
+- **Database**: PostgreSQL with [postgres](https://github.com/porsager/postgres) client
+- **Logging**: Pino for structured logging
+- **Testing**: Vitest, Playwright and Cucumber for BDD tests
 
 ## Project Structure
 
@@ -32,12 +33,19 @@ src/
 ├── components/
 │   ├── ui/              # Reusable UI components
 │   └── features/        # Feature-specific components
+│       ├── list-management/  # List creation and management
+│       ├── url-management/   # URL operations within lists
+│       └── sharing/          # List publishing and sharing
 ├── layouts/             # Astro layout components
-├── pages/              # Astro pages and API routes
-├── stores/             # Nanostores state management
-├── utils/              # Utility functions and database
-├── styles/             # Global styles
-└── assets/             # Static assets
+├── pages/               # Astro pages and API routes
+│   ├── api/             # RESTful API endpoints
+│   └── list/            # List viewing pages
+├── stores/              # Nanostores state management
+│   ├── lists/           # List-related stores and actions
+│   └── notificationStore.js  # UI notification management
+├── utils/               # Utility functions and database
+├── styles/              # Global styles
+└── assets/              # Static assets
 ```
 
 ## Setup Instructions
@@ -67,7 +75,8 @@ src/
    ```
 
 4. **Configuration**
-   - Update database connection settings in `src/utils/database.js`
+   - Create a `.env` file based on the example provided
+   - Update database connection settings in `.env`
    - Ensure PostgreSQL is running on the default port (5432)
 
 5. **Development**
@@ -85,16 +94,39 @@ src/
    pnpm start
    ```
 
+## Testing
+
+The project includes comprehensive test coverage with different test types:
+
+```bash
+# Run all tests
+npm run test
+
+# Run specific test types
+npm run test:unit     # Unit tests
+npm run test:api      # API tests
+npm run test:e2e      # End-to-end tests
+npm run test:bdd      # BDD tests with Cucumber
+
+# Run tests in specific environments
+npm run test:dev      # Development environment
+npm run test:tst      # Test environment 
+npm run test:acc      # Acceptance environment
+```
+
 ## Project Organization
 
 ### Feature Components
-Each feature is contained in its own component file under `src/components/features/`:
-- `CreateNewUrlList.jsx` - List creation (FR001)
-- `AddUrlsToList.jsx` - URL addition (FR002)
-- `ViewUrlsInList.jsx` - URL viewing (FR003)
-- `EditUrlsInList.jsx` - URL editing (FR004)
-- `DeleteUrlsFromList.jsx` - URL deletion (FR005)
-- And more...
+The application is organized around feature modules:
+
+- **List Management**: Creation, viewing, and deletion of lists
+  - `CreateNewList.jsx`, `ViewAllLists.jsx`, `DeleteList.jsx`, etc.
+
+- **URL Management**: Operations on URLs within lists
+  - `AddUrlsToList.jsx`, `ViewUrlsInList.jsx`, `EditUrlsInList.jsx`, etc.
+
+- **Sharing**: Publishing and sharing functionality
+  - `PublishList.jsx`, `ShareList.jsx`, `CustomizeListUrl.jsx`, etc.
 
 ### State Management
 - Uses Nanostores for reactive state management
@@ -106,6 +138,8 @@ Each feature is contained in its own component file under `src/components/featur
 - RESTful API endpoints under `src/pages/api/`
 - List management endpoints in `lists.js`
 - Individual list operations in `lists/[id].js`
+- URL management in `links.js`
+- Publishing operations in `lists/[id]/publish.js`
 
 ### Database Schema
 
@@ -114,7 +148,10 @@ Each feature is contained in its own component file under `src/components/featur
 CREATE TABLE lists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    title VARCHAR(255),
+    description TEXT,
     custom_url VARCHAR(50) UNIQUE,
+    slug VARCHAR(100) UNIQUE,
     is_published BOOLEAN DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -129,6 +166,8 @@ CREATE TABLE urls (
     list_id INTEGER NOT NULL REFERENCES lists(id),
     url TEXT NOT NULL,
     title VARCHAR(255),
+    description TEXT,
+    image TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
