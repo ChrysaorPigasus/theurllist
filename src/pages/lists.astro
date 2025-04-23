@@ -32,3 +32,48 @@ import ViewAllLists from '@components/features/list-management/ViewAllLists';
 <style>
   /* Any additional page-specific styles */
 </style>
+
+<script>
+  // Client-side logging for lists page
+  console.log('Lists page loaded - URL:', window.location.href);
+  console.log('Lists page load timestamp:', new Date().toISOString());
+  
+  // Log browser details
+  console.log('Browser details:', {
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
+  });
+
+  // Track page visit duration
+  const pageLoadTime = performance.now();
+  window.addEventListener('beforeunload', () => {
+    const duration = performance.now() - pageLoadTime;
+    console.log(`Lists page visit duration: ${(duration / 1000).toFixed(2)} seconds`);
+  });
+
+  // Log when components are hydrated
+  document.addEventListener('astro:hydrated', (event) => {
+    console.log('Component hydrated on lists page:', event.target.tagName, performance.now().toFixed(2) + 'ms');
+  });
+
+  // Track when ViewAllLists component is visible
+  document.addEventListener('DOMContentLoaded', () => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          console.log('Lists component visible in viewport', new Date().toISOString());
+        }
+      });
+    });
+    
+    // Observe the section that contains the ViewAllLists component
+    const listsSection = document.querySelector('[aria-labelledby="view-all-lists-heading"]');
+    if (listsSection) {
+      observer.observe(listsSection);
+    }
+  });
+</script>

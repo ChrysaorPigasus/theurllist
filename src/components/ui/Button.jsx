@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 
 const variants = {
   primary: 'bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500',
@@ -36,22 +36,39 @@ export default function Button({
   rounded = false,
   ...props
 }) {
+  // Use client-side only rendering for icons to prevent hydration mismatch
+  const [isClient, setIsClient] = useState(false);
+  
+  // Enable client-side rendering after mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   const baseClasses = 'inline-flex items-center justify-center border font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed';
-  const variantClasses = loading ? loadingStates[variant] : variants[variant];
   const sizeClasses = sizes[size];
   const blockClasses = block ? 'w-full' : '';
   const roundedClasses = rounded ? 'rounded-full' : 'rounded-md';
   
   const finalBaseClasses = baseClasses.replace('rounded-md', '');
   
+  // IMPORTANT: We need to handle client-side & server-side loading state differently
+  // On the server, we NEVER apply loading state (to avoid hydration mismatch)
+  // On the client, we apply it according to the prop
+  const variantClasses = isClient && loading 
+    ? loadingStates[variant] 
+    : variants[variant];
+  
+  // Create different button content for server vs client
+  // For server rendering, don't include SVG to avoid hydration mismatch
   const buttonContent = (
     <>
-      {loading ? (
+      {isClient && loading ? (
         <svg 
           className="animate-spin -ml-1 mr-2 h-4 w-4" 
           xmlns="http://www.w3.org/2000/svg" 
           fill="none" 
           viewBox="0 0 24 24"
+          data-testid="loading-spinner"
         >
           <circle 
             className="opacity-25" 
@@ -67,7 +84,7 @@ export default function Button({
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           />
         </svg>
-      ) : icon ? (
+      ) : isClient && icon ? (
         <span className="mr-2">{icon}</span>
       ) : null}
       {children}
@@ -91,9 +108,9 @@ export default function Button({
   return (
     <button
       type={type}
-      disabled={disabled || loading}
+      disabled={disabled || (isClient && loading)}
       className={combinedClasses}
-      aria-busy={loading ? 'true' : undefined}
+      aria-busy={isClient && loading ? 'true' : undefined}
       {...props}
     >
       {buttonContent}

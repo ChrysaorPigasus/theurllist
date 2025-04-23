@@ -1,5 +1,5 @@
 // Feature: Create New URL List (FR001)
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, createList } from '@stores/lists';
 import { generateSlug } from '@utils/urlGeneration';
@@ -16,18 +16,67 @@ export default function CreateNewList() {
   });
   const [feedback, setFeedback] = useState('');
   const { lists } = useStore(listStore);
-  const { isLoading = false, error } = useStore(listUIState);
+  const { isLoading, error } = useStore(listUIState);
+  // Track mounted state for async operations
+  const isMounted = useRef(true);
+  
+  // Explicitly handle the isLoading state for client-side hydration
+  const [clientIsLoading, setClientIsLoading] = useState(null);
+  
+  // Update client state after component mounts
+  useEffect(() => {
+    setClientIsLoading(isLoading === true);
+  }, [isLoading]);
+
+  // Component lifecycle logging
+  useEffect(() => {
+    // Log initial mount
+    console.log('CreateNewList component mounted', {
+      timestamp: new Date().toISOString(),
+      listsCount: lists.length,
+      isLoading
+    });
+    
+    // Set mounted flag
+    isMounted.current = true;
+    
+    // Cleanup when unmounting
+    return () => {
+      console.log('CreateNewList component unmounting', {
+        timestamp: new Date().toISOString()
+      });
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Log whenever lists change
+  useEffect(() => {
+    console.log('CreateNewList - Lists state updated', {
+      timestamp: new Date().toISOString(),
+      listsCount: lists.length
+    });
+  }, [lists]);
 
   // Auto-generate slug when title changes
   useEffect(() => {
     if (formData.title) {
       const generatedSlug = generateSlug(formData.title);
+      console.log('CreateNewList - Generated slug from title', {
+        title: formData.title,
+        generatedSlug
+      });
       setFormData(prev => ({ ...prev, slug: generatedSlug }));
     }
   }, [formData.title]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log('CreateNewList - Form field changed', {
+      field: name,
+      value,
+      timestamp: new Date().toISOString()
+    });
+    
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear feedback when user starts typing again
@@ -35,24 +84,68 @@ export default function CreateNewList() {
   };
 
   const handleCreateList = async () => {
+    if (!isMounted.current) return;
+    
     if (!formData.name.trim()) {
+      console.log('CreateNewList - Validation failed: empty name', {
+        timestamp: new Date().toISOString()
+      });
       setFeedback('List name cannot be empty.');
       return;
     }
 
-    const newList = await createList(formData);
-    if (newList) {
-      setFeedback(`List "${formData.name}" created successfully!`);
-      setFormData({ name: '', title: '', description: '', slug: '' });
-      setTimeout(() => setFeedback(''), 3000);
+    console.log('CreateNewList - Creating new list', {
+      formData,
+      timestamp: new Date().toISOString()
+    });
+    
+    try {
+      const newList = await createList(formData);
+      
+      if (!isMounted.current) return;
+      
+      if (newList) {
+        console.log('CreateNewList - List created successfully', {
+          newListId: newList.id,
+          newListName: newList.name,
+          timestamp: new Date().toISOString()
+        });
+        
+        setFeedback(`List "${formData.name}" created successfully!`);
+        setFormData({ name: '', title: '', description: '', slug: '' });
+        
+        // Clear feedback after delay
+        setTimeout(() => {
+          if (isMounted.current) {
+            setFeedback('');
+          }
+        }, 3000);
+      } else {
+        console.error('CreateNewList - List creation returned no result', {
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (err) {
+      if (isMounted.current) {
+        console.error('CreateNewList - Error creating list', {
+          error: err.message,
+          timestamp: new Date().toISOString()
+        });
+        setFeedback('Error creating list. Please try again.');
+      }
     }
   };
+
+  // Pre-calculate success and error messages for inputs
+  const nameError = feedback.includes('empty') ? feedback : undefined;
+  const nameSuccess = feedback.includes('successfully') ? feedback : undefined;
 
   return (
     <Card
       title="Create New List"
       description="Create a new collection of URLs"
       className="max-w-2xl mx-auto"
+      data-testid="home-page"
     >
       <div className="space-y-4">
         <div>
@@ -64,9 +157,9 @@ export default function CreateNewList() {
             placeholder="Enter list name"
             value={formData.name}
             onChange={handleInputChange}
-            disabled={isLoading}
-            error={feedback.includes('empty') ? feedback : undefined}
-            success={feedback.includes('successfully') ? feedback : undefined}
+            disabled={clientIsLoading}
+            error={nameError}
+            success={nameSuccess}
             required
           />
         </div>
@@ -80,7 +173,7 @@ export default function CreateNewList() {
             placeholder="Enter a descriptive title (max 100 chars)"
             value={formData.title}
             onChange={handleInputChange}
-            disabled={isLoading}
+            disabled={clientIsLoading}
             maxLength={100}
           />
           <p className="mt-1 text-sm text-gray-500">
@@ -100,7 +193,7 @@ export default function CreateNewList() {
             placeholder="Enter a description for this list"
             value={formData.description}
             onChange={handleInputChange}
-            disabled={isLoading}
+            disabled={clientIsLoading}
             maxLength={500}
           />
           <p className="mt-1 text-sm text-gray-500">
@@ -117,7 +210,7 @@ export default function CreateNewList() {
             placeholder="custom-url-slug"
             value={formData.slug}
             onChange={handleInputChange}
-            disabled={isLoading}
+            disabled={clientIsLoading}
             maxLength={60}
           />
           <p className="mt-1 text-sm text-gray-500">

@@ -1,5 +1,5 @@
 // Feature: Adding URLs to a List (FR002)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, addUrlToList } from '@stores/lists';
 
@@ -39,21 +39,48 @@ export default function AddUrlsToList({ listId, hideInput = false }) {
   const [feedback, setFeedback] = useState('');
   const { lists, activeListId } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
+  // Track if component is mounted for async operations
+  const isMounted = useRef(true);
   
   // Find the active list in the store
   const numericListId = parseInt(listId, 10);
   const activeList = lists.find(list => list.id === numericListId || list.id === activeListId);
   const urls = activeList?.urls || [];
 
+  // Debug logging
+  useEffect(() => {
+    console.log('AddUrlsToList component received listId:', listId);
+    console.log('AddUrlsToList parsed numericListId:', numericListId);
+    console.log('AddUrlsToList active list found:', activeList);
+    console.log('AddUrlsToList URLs count:', urls.length);
+    console.log('AddUrlsToList hideInput:', hideInput);
+    
+    // Cleanup when component unmounts
+    return () => {
+      console.log('AddUrlsToList component unmounting - cleaning up');
+      isMounted.current = false;
+    };
+  }, [listId, numericListId, activeList, urls.length, hideInput]);
+
   // Clear feedback messages after 3 seconds
   useEffect(() => {
     if (feedback) {
-      const timer = setTimeout(() => setFeedback(''), 3000);
+      const timer = setTimeout(() => {
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setFeedback('');
+        }
+      }, 3000);
+      
+      // Cleanup timeout to prevent memory leaks
       return () => clearTimeout(timer);
     }
   }, [feedback]);
 
   const handleAddUrl = async () => {
+    // Don't proceed if component unmounted
+    if (!isMounted.current) return;
+    
     if (!url.trim()) {
       setFeedback('URL cannot be empty.');
       return;
@@ -67,23 +94,40 @@ export default function AddUrlsToList({ listId, hideInput = false }) {
 
     try {
       // Log for debugging
-      console.log(`Adding URL to list ${numericListId}:`, formattedUrl);
+      console.log('AddUrlsToList - Adding URL to list with ID:', numericListId);
+      console.log('AddUrlsToList - URL being added:', formattedUrl);
       
       const result = await addUrlToList(numericListId, formattedUrl);
       
-      if (result) {
-        setFeedback(`URL "${formattedUrl}" added successfully!`);
-        setUrl('');
-      } else {
-        setFeedback('Failed to add URL. Please try again.');
+      // Only update state if component is still mounted
+      if (isMounted.current) {
+        if (result) {
+          console.log('AddUrlsToList - URL added successfully:', result);
+          setFeedback(`URL "${formattedUrl}" added successfully!`);
+          setUrl('');
+          
+          // Dispatch refresh event safely
+          try {
+            window.dispatchEvent(new CustomEvent('urlsUpdated'));
+          } catch (err) {
+            console.error('Error dispatching urlsUpdated event:', err);
+          }
+        } else {
+          console.error('AddUrlsToList - Failed to add URL, no result returned');
+          setFeedback('Failed to add URL. Please try again.');
+        }
       }
     } catch (err) {
-      console.error('Error adding URL:', err);
-      setFeedback('Error adding URL. Please try again.');
+      // Only update state if component is still mounted
+      if (isMounted.current) {
+        console.error('AddUrlsToList - Error adding URL:', err);
+        setFeedback('Error adding URL. Please try again.');
+      }
     }
   };
 
   if (!activeList) {
+    console.log('AddUrlsToList - No active list found, showing loading state');
     return <div className="text-gray-500">Loading list...</div>;
   }
 

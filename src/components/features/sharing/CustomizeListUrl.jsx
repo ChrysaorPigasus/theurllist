@@ -1,5 +1,5 @@
 // Feature: Customizing the List URL (FR006)
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, updateCustomUrl } from '@stores/lists';
 import { validateCustomUrl } from '@utils/urlGeneration';
@@ -12,24 +12,92 @@ export default function CustomizeListUrl({ listId }) {
   const [feedback, setFeedback] = useState('');
   const { lists, activeListId } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
+  // Track if component is mounted for async operations
+  const isMounted = useRef(true);
   
   const activeList = lists.find(list => list.id === activeListId);
 
+  // Add debug logging on component mount and when key props/state changes
+  useEffect(() => {
+    console.log('CustomizeListUrl component received listId:', listId);
+    console.log('CustomizeListUrl active list ID from store:', activeListId);
+    console.log('CustomizeListUrl found active list:', activeList);
+    
+    // Set the initial value of customUrl if the list has a slug
+    if (activeList?.slug && !customUrl) {
+      console.log('CustomizeListUrl initializing with existing slug:', activeList.slug);
+      setCustomUrl(activeList.slug);
+    }
+    
+    // Cleanup when component unmounts
+    return () => {
+      console.log('CustomizeListUrl component unmounting - cleaning up');
+      isMounted.current = false;
+    };
+  }, [listId, activeListId, activeList, customUrl]);
+
+  // Clear feedback messages after 3 seconds
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => {
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setFeedback('');
+        }
+      }, 3000);
+      
+      // Cleanup timeout to prevent memory leaks
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
+
   const handleSubmit = async () => {
+    // Don't proceed if component unmounted
+    if (!isMounted.current) return;
+    
     const validationError = validateCustomUrl(customUrl);
     if (validationError) {
+      console.log('CustomizeListUrl validation error:', validationError);
       setFeedback(validationError);
       return;
     }
 
-    const success = await updateCustomUrl(listId, customUrl);
-    if (success) {
-      setFeedback('Custom URL updated successfully!');
-      setTimeout(() => setFeedback(''), 3000);
+    console.log('CustomizeListUrl updating custom URL for list ID:', listId);
+    console.log('CustomizeListUrl new custom URL:', customUrl);
+    
+    try {
+      const success = await updateCustomUrl(listId, customUrl);
+      
+      // Only update state if component is still mounted
+      if (isMounted.current) {
+        if (success) {
+          console.log('CustomizeListUrl custom URL updated successfully');
+          setFeedback('Custom URL updated successfully!');
+          
+          // Dispatch refresh event safely to update the UI
+          try {
+            window.dispatchEvent(new CustomEvent('refresh-list-data', { 
+              detail: { listId: parseInt(listId) } 
+            }));
+          } catch (err) {
+            console.error('Error dispatching refresh event:', err);
+          }
+        } else {
+          console.error('CustomizeListUrl failed to update custom URL');
+          setFeedback('Failed to update custom URL. Please try again.');
+        }
+      }
+    } catch (err) {
+      // Only update state if component is still mounted
+      if (isMounted.current) {
+        console.error('CustomizeListUrl error updating custom URL:', err);
+        setFeedback('Failed to update custom URL. Please try again.');
+      }
     }
   };
 
   if (!activeList) {
+    console.log('CustomizeListUrl no active list found, not rendering component');
     return null;
   }
 
@@ -77,7 +145,7 @@ export default function CustomizeListUrl({ listId }) {
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 101.414 1.414L10 11.414l1.293-1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">

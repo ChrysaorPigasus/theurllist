@@ -1,10 +1,12 @@
 import { map } from 'nanostores';
 import { isLoading, error, urlListStore } from '@stores/urlListStore';
 import { showSuccess, showError, showInfo } from '@stores/notificationStore';
+import { listUIState as initialListUIState } from './initialStates';
 
 // Create dedicated stores for the lists module
 export const listStore = map({ lists: [] });
-export const listUIState = map({ isLoading: false, error: null });
+// Use the pre-configured state with consistent initialization
+export const listUIState = initialListUIState;
 
 // Initialize the list store with data from API
 export async function initializeStore() {

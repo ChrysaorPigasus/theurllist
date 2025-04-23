@@ -1,5 +1,5 @@
 // Feature: Viewing URLs in a List (FR003)
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, addUrlToList, updateUrl, deleteUrl } from '@stores/lists';
 import Card from '@ui/Card';
@@ -46,22 +46,35 @@ export default function ViewUrlsInList({ listId }) {
   const refreshList = useCallback(() => {
     // Only dispatch events if the component is mounted
     if (isMounted.current) {
-      // Instead of directly calling fetchListDetails, dispatch an event
-      // that the parent can listen to if needed
-      window.dispatchEvent(new CustomEvent('refresh-list-data', { 
-        detail: { listId: parseInt(listId) } 
-      }));
+      try {
+        // Instead of directly calling fetchListDetails, dispatch an event
+        // that the parent can listen to if needed
+        window.dispatchEvent(new CustomEvent('refresh-list-data', { 
+          detail: { listId: parseInt(listId) } 
+        }));
+      } catch (err) {
+        // Safely handle any errors that might occur during event dispatch
+        console.error('ViewUrlsInList - Error dispatching refresh event:', err);
+      }
     }
   }, [listId]);
 
   // Add cleanup effect when component unmounts
-  React.useEffect(() => {
+  useEffect(() => {
     isMounted.current = true;
     
+    // Add debug logging
+    console.log('ViewUrlsInList component received listId:', listId);
+    console.log('ViewUrlsInList initial lists state:', lists);
+    console.log('ViewUrlsInList found activeList:', activeList);
+    console.log('ViewUrlsInList urls count:', urls.length);
+    
+    // Return cleanup function
     return () => {
+      console.log('ViewUrlsInList component unmounting - cleaning up');
       isMounted.current = false;
     };
-  }, []);
+  }, [listId, lists, activeList, urls.length]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -70,6 +83,8 @@ export default function ViewUrlsInList({ listId }) {
 
   // Add URL handler with improved async handling
   const handleAddUrl = async () => {
+    if (!isMounted.current) return; // Safety check before starting async operation
+    
     if (!newUrlData.url.trim()) {
       setFeedback('URL cannot be empty.');
       return;
@@ -77,13 +92,23 @@ export default function ViewUrlsInList({ listId }) {
 
     try {
       // Use listId from props instead of activeListId
-      const result = await addUrlToList(listId, newUrlData);
+      console.log('ViewUrlsInList - Adding URL to list:', listId, newUrlData);
+      
+      // Create a local promise that will be cancelled if component unmounts
+      const addPromise = addUrlToList(listId, newUrlData);
+      
+      // Track if the component is still mounted after the async operation
+      const result = await addPromise;
+      
       // Check if component is still mounted before updating state
       if (isMounted.current) {
+        console.log('ViewUrlsInList - URL added successfully:', result);
         setNewUrlData({ url: '', name: '', title: '', description: '', image: '' });
         setFeedback('URL added successfully!');
         setAdvancedFormVisible(false);
-        setTimeout(() => {
+        
+        // Use a safe timeout that won't cause issues if component unmounts
+        const feedbackTimeout = setTimeout(() => {
           if (isMounted.current) {
             setFeedback('');
           }
@@ -91,17 +116,21 @@ export default function ViewUrlsInList({ listId }) {
         
         // Refresh the list data to show the new URL
         refreshList();
+        
+        // Cleanup function to avoid memory leaks
+        return () => clearTimeout(feedbackTimeout);
       }
     } catch (err) {
       if (isMounted.current) {
+        console.error('ViewUrlsInList - Error adding URL:', err);
         setFeedback('Failed to add URL. Please try again.');
-        console.error('Error adding URL:', err);
       }
     }
   };
 
   // Edit URL handlers
   const handleStartEdit = (urlItem) => {
+    console.log('ViewUrlsInList - Starting to edit URL:', urlItem);
     setEditingUrl({
       id: urlItem.id,
       url: urlItem.url,
@@ -126,9 +155,11 @@ export default function ViewUrlsInList({ listId }) {
     }
 
     try {
+      console.log('ViewUrlsInList - Updating URL:', editingUrl);
       await updateUrl(editingUrl.id, editingUrl);
       // Check if component is still mounted before updating state
       if (isMounted.current) {
+        console.log('ViewUrlsInList - URL updated successfully');
         setEditingUrl(null);
         setFeedback('URL updated successfully!');
         setTimeout(() => {
@@ -142,8 +173,8 @@ export default function ViewUrlsInList({ listId }) {
       }
     } catch (err) {
       if (isMounted.current) {
+        console.error('ViewUrlsInList - Error updating URL:', err);
         setFeedback('Failed to update URL. Please try again.');
-        console.error('Error updating URL:', err);
       }
     }
   };
@@ -154,15 +185,18 @@ export default function ViewUrlsInList({ listId }) {
 
   // Delete URL handlers
   const handleStartDelete = (urlItem) => {
+    console.log('ViewUrlsInList - Starting to delete URL:', urlItem);
     setUrlToDelete(urlItem);
   };
 
   // Delete URL handlers with improved async handling
   const handleConfirmDelete = async () => {
     try {
+      console.log('ViewUrlsInList - Confirming delete for URL ID:', urlToDelete.id);
       await deleteUrl(urlToDelete.id);
       // Check if component is still mounted before updating state
       if (isMounted.current) {
+        console.log('ViewUrlsInList - URL deleted successfully');
         setUrlToDelete(null);
         setFeedback('URL deleted successfully!');
         setTimeout(() => {
@@ -176,8 +210,8 @@ export default function ViewUrlsInList({ listId }) {
       }
     } catch (err) {
       if (isMounted.current) {
+        console.error('ViewUrlsInList - Error deleting URL:', err);
         setFeedback('Failed to delete URL. Please try again.');
-        console.error('Error deleting URL:', err);
       }
     }
   };

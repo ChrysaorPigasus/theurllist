@@ -5,7 +5,7 @@ import ViewAllLists from '@components/features/list-management/ViewAllLists';
 ---
 
 <Layout title="The Urlist - Share Your URL Collections">
-  <main class="min-h-screen bg-gray-50">
+  <main class="min-h-screen bg-gray-50" data-testid="home-page">
     <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
@@ -43,3 +43,31 @@ import ViewAllLists from '@components/features/list-management/ViewAllLists';
 <style>
   /* Any additional page-specific styles */
 </style>
+
+<script>
+  // Client-side logging for homepage
+  console.log('Home page loaded - URL:', window.location.href);
+  console.log('Home page load timestamp:', new Date().toISOString());
+  
+  // Log browser details
+  console.log('Browser details:', {
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
+  });
+
+  // Track page visit duration
+  const pageLoadTime = performance.now();
+  window.addEventListener('beforeunload', () => {
+    const duration = performance.now() - pageLoadTime;
+    console.log(`Home page visit duration: ${(duration / 1000).toFixed(2)} seconds`);
+  });
+
+  // Log when components are hydrated
+  document.addEventListener('astro:hydrated', (event) => {
+    console.log('Component hydrated:', event.target.tagName, performance.now().toFixed(2) + 'ms');
+  });
+</script>

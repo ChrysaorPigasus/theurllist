@@ -1,19 +1,26 @@
 import { Page } from '@playwright/test';
 import { selectors, getSelectors, SelectorHelpers } from '@tests/utils/selector-helper';
+import { BasePage } from '@tests/bdd/pages/BasePage';
 
 /**
  * Page object for the list editor page
-  * Extends BasePage to inherit automatic console error tracking capabilities
+ * Extends BasePage to inherit automatic console error tracking capabilities
  */
-
-import { BasePage } from '@tests/bdd/pages/BasePage';
-
-export class ListEditorPage {
+export class ListEditorPage extends BasePage {
   private selectors: SelectorHelpers;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.selectors = getSelectors(page);
+  }
+
+  /**
+   * Navigate to the list editor page for a specific list
+   * @param {string} listId - The ID or slug of the list to edit
+   */
+  async navigateToList(listId) {
+    await this.navigateTo(`/list/${listId}`);
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**

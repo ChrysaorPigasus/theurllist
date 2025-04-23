@@ -1,20 +1,18 @@
 import { Page } from '@playwright/test';
 import { selectors, getSelectors, SelectorHelpers } from '@tests/utils/selector-helper';
 import { DialogHelper } from '@tests/utils/dialog-helper';
+import { BasePage } from '@tests/bdd/pages/BasePage';
 
 /**
  * Page object for the home page
-  * Extends BasePage to inherit automatic console error tracking capabilities
+ * Extends BasePage to inherit automatic console error tracking capabilities
  */
-
-import { BasePage } from '@tests/bdd/pages/BasePage';
-
-export class HomePage {
+export class HomePage extends BasePage {
   private selectors: SelectorHelpers;
   private dialogHelper: DialogHelper;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.selectors = getSelectors(page);
     this.dialogHelper = new DialogHelper(page);
   }
@@ -23,7 +21,10 @@ export class HomePage {
    * Navigate to the home page
    */
   async navigateToHomePage() {
-    await this.page.goto('/');
+    await this.navigateTo('/');
+    await this.page.waitForSelector('[data-testid="home-page"]', { timeout: 5000 }).catch(() => {
+      console.warn('Home page data-testid marker not found, but continuing');
+    });
   }
 
   /**
@@ -31,6 +32,14 @@ export class HomePage {
    */
   getSuccessMessage(text?: string) {
     return this.dialogHelper.getSuccessMessage(text);
+  }
+
+  /**
+   * Check if success message is visible
+   */
+  async isSuccessMessageVisible(text?: string) {
+    const message = this.dialogHelper.getSuccessMessage(text);
+    return await message.isVisible();
   }
 
   /**

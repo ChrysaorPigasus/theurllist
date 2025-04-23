@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef, useState, useEffect } from 'react';
 
 const variants = {
   default: 'border-gray-300 focus:border-brand-500 focus:ring-brand-500',
@@ -14,6 +14,9 @@ const sizes = {
   lg: 'px-4 py-3 text-lg leading-6',
 };
 
+/**
+ * Input component with hydration-safe disabled prop handling
+ */
 const Input = forwardRef(({
   id,
   name,
@@ -25,7 +28,7 @@ const Input = forwardRef(({
   size = 'md',
   className = '',
   required = false,
-  disabled = false, // Set explicit default to false
+  disabled = null, // Set default to null for consistent hydration
   readOnly = false,
   prefix,
   suffix,
@@ -37,15 +40,20 @@ const Input = forwardRef(({
   variant = 'default',
   ...props
 }, ref) => {
+  // Use state to handle the disabled prop consistently between server and client
+  const [isClientDisabled, setIsClientDisabled] = useState(null);
+  
+  // Update client-side disabled state after initial render
+  useEffect(() => {
+    setIsClientDisabled(disabled === true);
+  }, [disabled]);
+  
   const baseClasses = 'block w-full rounded-md shadow-sm disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed';
   const variantClasses = variants[variant] || variants.default;
   const sizeClasses = sizes[size];
 
-  // Normalize the disabled prop to boolean to avoid hydration issues
-  const isDisabled = Boolean(disabled);
-
   const handleChange = (e) => {
-    if (isDisabled || readOnly) return;
+    if (isClientDisabled || readOnly) return;
     if (props.onChange) props.onChange(e);
   };
 
@@ -55,9 +63,6 @@ const Input = forwardRef(({
   if ('value' in props) {
     inputProps.value = safeValue;
   }
-  
-  // Remove the disabled prop from inputProps since we're passing isDisabled directly
-  delete inputProps.disabled;
 
   return (
     <div className={className}>
@@ -72,13 +77,14 @@ const Input = forwardRef(({
       )}
       <div className="mt-1 relative flex items-center">
         {prefix && <span data-testid="prefix" className="mr-2">{prefix}</span>}
+        
+        {/* Use null for disabled on server-side render to match what React expects */}
         <input
           ref={ref}
           type={type}
           id={id}
           name={name}
           required={required}
-          disabled={isDisabled}
           readOnly={readOnly}
           className={`${baseClasses} ${variantClasses} ${sizeClasses}`}
           aria-invalid={error ? 'true' : 'false'}
@@ -88,8 +94,10 @@ const Input = forwardRef(({
           onBlur={onBlur}
           onKeyPress={onKeyPress}
           {...inputProps}
+          disabled={isClientDisabled}
         />
-        {clearable && !isDisabled && !readOnly && (
+        
+        {clearable && !isClientDisabled && !readOnly && (
           <button
             type="button"
             aria-label="Clear"

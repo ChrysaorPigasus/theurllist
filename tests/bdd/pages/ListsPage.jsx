@@ -1,20 +1,18 @@
 import { Page } from '@playwright/test';
 import { selectors, getSelectors, SelectorHelpers } from '@tests/utils/selector-helper';
 import { DialogHelper } from '@tests/utils/dialog-helper';
+import { BasePage } from '@tests/bdd/pages/BasePage';
 
 /**
  * Page object for the lists overview page
-  * Extends BasePage to inherit automatic console error tracking capabilities
+ * Extends BasePage to inherit automatic console error tracking capabilities
  */
-
-import { BasePage } from '@tests/bdd/pages/BasePage';
-
-export class ListsPage {
+export class ListsPage extends BasePage {
   private selectors: SelectorHelpers;
   private dialogHelper: DialogHelper;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.selectors = getSelectors(page);
     this.dialogHelper = new DialogHelper(page);
   }
@@ -23,7 +21,8 @@ export class ListsPage {
    * Navigate to the lists page
    */
   async navigateToListsPage() {
-    await this.page.goto('/lists');
+    await this.navigateTo('/lists');
+    await this.page.waitForLoadState('networkidle');
   }
 
   /**

@@ -1,5 +1,5 @@
 // Feature: View All URL Lists
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { listStore, listUIState, fetchLists } from '@stores/lists';
 import Card from '@ui/Card';
@@ -20,18 +20,124 @@ export default function ViewAllLists() {
   const { lists } = useStore(listStore);
   const { isLoading = false, error } = useStore(listUIState);
   const [editingListId, setEditingListId] = useState(null);
+  // Track mounted state for async operations
+  const isMounted = useRef(true);
+  // Performance tracking
+  const fetchStartTime = useRef(null);
 
+  // Component lifecycle and fetch logging
   useEffect(() => {
-    fetchLists().catch(console.error);
+    // Start timestamp for performance measurement
+    const mountTime = performance.now();
+    console.log('ViewAllLists component mounted', {
+      timestamp: new Date().toISOString(),
+      mountTimeMs: mountTime.toFixed(2)
+    });
+    
+    // Track mounted state
+    isMounted.current = true;
+    
+    // Track fetch performance
+    fetchStartTime.current = performance.now();
+    console.log('ViewAllLists - Fetching lists', {
+      timestamp: new Date().toISOString(),
+      fetchStartTimeMs: fetchStartTime.current.toFixed(2)
+    });
+
+    // Fetch lists
+    fetchLists()
+      .then(fetchedLists => {
+        if (isMounted.current) {
+          const fetchDuration = performance.now() - fetchStartTime.current;
+          console.log('ViewAllLists - Lists fetched successfully', {
+            timestamp: new Date().toISOString(),
+            fetchDurationMs: fetchDuration.toFixed(2),
+            listsCount: fetchedLists.length,
+            hasPublishedLists: fetchedLists.some(list => list.published)
+          });
+        }
+      })
+      .catch(err => {
+        if (isMounted.current) {
+          const fetchDuration = performance.now() - fetchStartTime.current;
+          console.error('ViewAllLists - Error fetching lists', {
+            timestamp: new Date().toISOString(),
+            fetchDurationMs: fetchDuration.toFixed(2),
+            error: err.message
+          });
+        }
+      });
+
+    // Cleanup when unmounting
+    return () => {
+      console.log('ViewAllLists component unmounting', {
+        timestamp: new Date().toISOString(),
+        componentLifetimeMs: (performance.now() - mountTime).toFixed(2)
+      });
+      isMounted.current = false;
+    };
   }, []);
 
+  // Log when lists state changes
+  useEffect(() => {
+    console.log('ViewAllLists - Lists state updated', {
+      timestamp: new Date().toISOString(),
+      listsCount: lists.length,
+      listIds: lists.map(list => list.id)
+    });
+  }, [lists]);
+
+  // Log loading and error state changes
+  useEffect(() => {
+    console.log('ViewAllLists - Loading state changed', {
+      timestamp: new Date().toISOString(),
+      isLoading,
+      hasError: !!error,
+      error: error || null
+    });
+  }, [isLoading, error]);
+
   const handleEditClick = (listId) => {
+    console.log('ViewAllLists - Edit list clicked', {
+      timestamp: new Date().toISOString(),
+      listId
+    });
     setEditingListId(listId);
   };
 
   const handleUpdateSuccess = (updatedList) => {
+    console.log('ViewAllLists - List updated successfully', {
+      timestamp: new Date().toISOString(),
+      listId: updatedList.id,
+      listName: updatedList.name
+    });
+    
     // Refresh the lists after successful update
-    fetchLists().catch(console.error);
+    fetchStartTime.current = performance.now();
+    console.log('ViewAllLists - Refreshing lists after update', {
+      timestamp: new Date().toISOString(),
+      refreshStartTimeMs: fetchStartTime.current.toFixed(2)
+    });
+    
+    fetchLists()
+      .then(fetchedLists => {
+        if (isMounted.current) {
+          const fetchDuration = performance.now() - fetchStartTime.current;
+          console.log('ViewAllLists - Lists refreshed successfully', {
+            timestamp: new Date().toISOString(),
+            refreshDurationMs: fetchDuration.toFixed(2),
+            listsCount: fetchedLists.length
+          });
+        }
+      })
+      .catch(err => {
+        if (isMounted.current) {
+          console.error('ViewAllLists - Error refreshing lists', {
+            timestamp: new Date().toISOString(),
+            error: err.message
+          });
+        }
+      });
   };
 
   if (isLoading) {
