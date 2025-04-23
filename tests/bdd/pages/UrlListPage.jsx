@@ -1,15 +1,20 @@
 import { Page } from '@playwright/test';
 import { selectors, getSelectors, SelectorHelpers } from '@tests/utils/selector-helper';
-import { DialogHelper } from '.@tests/utils/dialog-helper';
+import { DialogHelper } from '@tests/utils/dialog-helper';
+import { BasePage } from '@tests/bdd/pages/BasePage';
 
 /**
  * Page object for the URL list page
+ * Extends BasePage to inherit automatic console error tracking capabilities
  */
-export class UrlListPage {
-  private selectors: SelectorHelpers;
-  private dialogHelper: DialogHelper;
+export class UrlListPage extends BasePage {
+  selectors;
+  dialogHelper;
+  page;
 
-  constructor(page: Page) {
+  constructor(page) {
+    // Initialize the base page with error tracking
+    super(page);
     this.page = page;
     this.selectors = getSelectors(page);
     this.dialogHelper = new DialogHelper(page);

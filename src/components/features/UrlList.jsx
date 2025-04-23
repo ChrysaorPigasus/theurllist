@@ -334,6 +334,24 @@ function ConsolidatedUrlManagementSection({ listId }) {
           <div className="mb-6">
             <h3 className="text-md font-medium text-gray-700 mb-2">Publish &amp; Share This List</h3>
             <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+              {/* Alert for unpublished list - at the top */}
+              {!isPublished && (
+                <div className="mt-2 rounded-md bg-amber-50 p-3 mb-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-amber-800">
+                        This list is not published yet. You need to publish it first to share it with others.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Publishing Section */}
               <div className="flex flex-row items-center justify-between mb-4">
                 <div className="text-sm text-gray-500 mr-4 w-full">
@@ -387,103 +405,80 @@ function ConsolidatedUrlManagementSection({ listId }) {
                 </div>
               </div>
               
-              {/* Sharing Section */}
+              {/* Sharing Section - Updated to match the horizontal layout */}
               <div className="flex flex-row items-center justify-between">
                 <div className="text-sm text-gray-500 mr-4 w-full">
                   <div className="bg-white shadow sm:rounded-lg overflow-hidden border border-gray-200 mx-auto">
                     <div className="px-4 py-5 sm:px-6">
-                      <div className="flex justify-between items-center">
-                        <div className="space-y-6">
-                          <div className="inline-flex justify-between items-center">
-                            {/* URL Share Input and Description */}
-                            <div>
-                              <div>
-                                <p className="mt-1 max-w-2xl text-sm text-gray-500" id="card-description">
-                                  Share your list with others via URL or social media
-                                </p>
-                                {!isPublished && (
-                                  <div className="mt-2 rounded-md bg-amber-50 p-3">
-                                    <div className="flex">
-                                      <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                        </svg>
-                                      </div>
-                                      <div className="ml-3">
-                                        <p className="text-sm font-medium text-amber-800">
-                                          This list is not published yet. You need to publish it first to share it with others.
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                                <div className="mt-1 relative flex items-center">
-                                  <input 
-                                    type="text" 
-                                    id="share-url" 
-                                    readOnly 
-                                    className="block w-full rounded-md shadow-sm disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed border-gray-300 focus:border-brand-500 focus:ring-brand-500 px-3 py-2 text-base leading-6" 
-                                    aria-invalid="false" 
-                                    value={shareableUrl}
-                                    disabled={!isPublished}
-                                  />
-                                </div>
-                              </div>
+                      <div className="inline-flex justify-between items-center w-full">
+                        <div>
+                          <div>
+                            <p className="mt-1 max-w-2xl text-sm text-gray-500" id="card-description">
+                              Share your list with others via URL or social media
+                            </p>
+                            <div className="mt-1 relative flex items-center">
+                              <input 
+                                type="text" 
+                                id="share-url" 
+                                readOnly 
+                                className="block w-full rounded-md shadow-sm disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed border-gray-300 focus:border-brand-500 focus:ring-brand-500 px-3 py-2 text-base leading-6" 
+                                aria-invalid="false" 
+                                value={shareableUrl}
+                                disabled={!isPublished}
+                              />
                             </div>
-                            
-                            {/* Social Share Buttons */}
-                            <div>
-                              <h4 className="text-sm font-medium text-gray-900">Share via:</h4>
-                              <div className="mt-2 flex space-x-2">
-                                <button 
-                                  type="button" 
-                                  onClick={() => handleShare('twitter')} 
-                                  disabled={!isPublished}
-                                  className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
-                                >
-                                  <span className="mr-2">
-                                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 a4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                                    </svg>
-                                  </span>
-                                  Twitter
-                                </button>
-                                <button 
-                                  type="button" 
-                                  onClick={() => handleShare('linkedin')}
-                                  disabled={!isPublished}
-                                  className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
-                                >
-                                  <span className="mr-2">
-                                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm-1.743 13.019h3.486V9H3.594v11.452z"/>
-                                    </svg>
-                                  </span>
-                                  LinkedIn
-                                </button>
-                                <button 
-                                  type="button" 
-                                  onClick={() => handleShare('email')}
-                                  disabled={!isPublished}
-                                  className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
-                                >
-                                  <span className="mr-2">
-                                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                  </span>
-                                  Email
-                                </button>
-                                <button 
-                                  type="button" 
-                                  onClick={handleCopy}
-                                  disabled={!isPublished}
-                                  className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
-                                >
-                                  Copy URL
-                                </button>
-                              </div>
-                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900">Share via:</h4>
+                          <div className="mt-2 flex space-x-2">
+                            <button 
+                              type="button" 
+                              onClick={() => handleShare('twitter')} 
+                              disabled={!isPublished}
+                              className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
+                            >
+                              <span className="mr-2">
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 a4.996 4.996 0 01-2.212.085a4.936 4.936 0 004.604 3.417 a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                </svg>
+                              </span>
+                              Twitter
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => handleShare('linkedin')}
+                              disabled={!isPublished}
+                              className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
+                            >
+                              <span className="mr-2">
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm-1.743 13.019h3.486V9H3.594v11.452z"/>
+                                </svg>
+                              </span>
+                              LinkedIn
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => handleShare('email')}
+                              disabled={!isPublished}
+                              className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
+                            >
+                              <span className="mr-2">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                              </span>
+                              Email
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={handleCopy}
+                              disabled={!isPublished}
+                              className="inline-flex items-center justify-center border font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-md bg-white text-gray-700 hover:bg-gray-50 border-gray-300 focus:ring-brand-500 px-3 py-2 text-sm leading-4"
+                            >
+                              Copy URL
+                            </button>
                           </div>
                         </div>
                       </div>

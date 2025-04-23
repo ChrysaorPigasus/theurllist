@@ -2,7 +2,11 @@ import { Page } from '@playwright/test';
 
 /**
  * Page object for the shared list view page
+  * Extends BasePage to inherit automatic console error tracking capabilities
  */
+
+import { BasePage } from '@tests/bdd/pages/BasePage';
+
 export class SharedListPage {
   constructor(page) {
     this.page = page;

@@ -4,7 +4,11 @@ import { DialogHelper } from '@tests/utils/dialog-helper';
 
 /**
  * Page object for the lists overview page
+  * Extends BasePage to inherit automatic console error tracking capabilities
  */
+
+import { BasePage } from '@tests/bdd/pages/BasePage';
+
 export class ListsPage {
   private selectors: SelectorHelpers;
   private dialogHelper: DialogHelper;

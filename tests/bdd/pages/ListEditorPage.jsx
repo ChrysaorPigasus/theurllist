@@ -3,7 +3,11 @@ import { selectors, getSelectors, SelectorHelpers } from '@tests/utils/selector-
 
 /**
  * Page object for the list editor page
+  * Extends BasePage to inherit automatic console error tracking capabilities
  */
+
+import { BasePage } from '@tests/bdd/pages/BasePage';
+
 export class ListEditorPage {
   private selectors: SelectorHelpers;
 
