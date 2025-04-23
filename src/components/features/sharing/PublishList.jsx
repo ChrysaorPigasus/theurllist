@@ -21,7 +21,21 @@ export default function PublishList({ listId }) {
     };
   }, []);
   
-  const currentList = lists.find(list => list.id === listId);
+  // Verbeterde logica voor het vinden van de actieve lijst
+  // Zoek op meerdere manieren: via ID en via slug
+  let currentList = null;
+  
+  if (listId) {
+    const numericListId = parseInt(listId, 10);
+    currentList = lists.find(list => 
+      list.id === numericListId || 
+      list.id === listId || 
+      (list.slug && list.slug.toLowerCase() === String(listId).toLowerCase())
+    );
+  }
+  
+  console.log('PublishList: lists=', lists, 'listId=', listId, 'found currentList=', currentList);
+  
   // Check if list is published using the published column
   const isPublished = currentList?.published === true;
 

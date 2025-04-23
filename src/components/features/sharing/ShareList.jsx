@@ -27,13 +27,33 @@ export default function ShareList({ listId }) {
   const { lists, activeListId } = useStore(listStore);
   const { isLoading, error } = useStore(listUIState);
   
-  const activeList = lists.find(list => list.id === activeListId);
+  // Verbeterde logica voor het vinden van de actieve lijst
+  // Zoek eerst via activeListId, en als fallback via de listId parameter
+  let activeList = lists.find(list => list.id === activeListId);
+  
+  // Als geen lijst gevonden via activeListId, probeer direct via listId parameter
+  if (!activeList && listId) {
+    console.log('ShareList: Active list not found via activeListId, trying with direct listId:', listId);
+    const numericListId = parseInt(listId, 10);
+    activeList = lists.find(list => 
+      list.id === numericListId || 
+      list.id === listId || 
+      (list.slug && list.slug.toLowerCase() === String(listId).toLowerCase())
+    );
+    
+    if (activeList) {
+      console.log('ShareList: Found list directly with ID or slug:', activeList);
+    }
+  }
+  
   const shareableUrl = getShareableUrl(activeList);
+  
+  console.log('ShareList: lists=', lists, 'activeListId=', activeListId, 'found activeList=', activeList);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareableUrl);
-      showSuccess('URL copied to clipboard!');
+      showSuccess('URL copied to clipboard! You can now share this link with others.');
     } catch (err) {
       showError('Failed to copy URL. Please try again.');
     }
@@ -86,32 +106,16 @@ export default function ShareList({ listId }) {
 
   if (!activeList) {
     return (
-      <Card className="max-w-2xl mx-auto">
-        <EmptyState
-          title="Empty List"
-          description="This list is empty or could not be found."
-          icon={() => (
-            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2zm0 2v10l4.5-3 3 2.5 4.5-3.5 4 4V6H4z" />
-            </svg>
-          )}
-        />
-      </Card>
-    );
-  }
-
-  if (!activeList.urls || activeList.urls.length === 0) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <EmptyState
-          title="Empty List"
-          description="There are no urls in this list."
-          icon={() => (
-            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2zm0 2v10l4.5-3 3 2.5 4.5-3.5 4 4V6H4z" />
-            </svg>
-          )}
-        />
+      <Card
+        title="Share List"
+        description="Share this list with others"
+        className="max-w-2xl mx-auto"
+      >
+        <div className="space-y-6">
+          <div>
+            <p className="text-sm text-gray-500">No active list found. Please select a valid list.</p>
+          </div>
+        </div>
       </Card>
     );
   }
@@ -135,6 +139,11 @@ export default function ShareList({ listId }) {
               Copy URL
             </Button>
           </div>
+          {(!activeList.urls || activeList.urls.length === 0) && (
+            <p className="mt-2 text-sm text-amber-500">
+              Note: This list is empty. Consider adding URLs before sharing.
+            </p>
+          )}
         </div>
 
         <SocialShareButtons onShare={handleShare} />
@@ -200,7 +209,7 @@ function ErrorMessage({ error }) {
 function TwitterIcon() {
   return (
     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
     </svg>
   );
 }
