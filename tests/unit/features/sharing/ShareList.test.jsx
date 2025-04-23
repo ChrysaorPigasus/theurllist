@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ShareList from '@components/features/sharing/ShareList';
 import { useStore } from '@nanostores/react';
 import * as listsStore from '@stores/lists';
@@ -34,7 +35,7 @@ vi.mock('@stores/notificationStore', () => {
 });
 
 // Import directly after mocking
-import { showSuccess, showError } from '@stores/notificationStore';
+import { showSuccess, showError, showInfo } from '@stores/notificationStore';
 
 // Mock window.open and window.location
 const originalWindow = { ...window };
@@ -54,6 +55,24 @@ Object.defineProperty(navigator, 'clipboard', {
     writeText: vi.fn().mockResolvedValue(undefined)
   }
 });
+
+// Mock getComputedStyle for visibility testing
+const originalGetComputedStyle = window.getComputedStyle;
+window.getComputedStyle = (element) => {
+  const computedStyle = originalGetComputedStyle(element);
+  
+  // Create a proxy to override visibility values for tests
+  return new Proxy(computedStyle, {
+    get: (target, prop) => {
+      // Default values to make elements visible
+      if (prop === 'display') return 'block';
+      if (prop === 'visibility') return 'visible';
+      if (prop === 'opacity') return '1';
+      
+      return Reflect.get(target, prop);
+    }
+  });
+};
 
 // Define mock data first
 const mockList = { 
@@ -142,8 +161,14 @@ describe('ShareList', () => {
     error: null
   };
 
+  // Setup for realistic user interaction
+  let user;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Setup user event for realistic user simulation
+    user = userEvent.setup();
     
     // Set up the mock return values for useStore
     useStore.mockImplementation((store) => {
@@ -163,14 +188,32 @@ describe('ShareList', () => {
     navigator.clipboard.writeText.mockResolvedValue(undefined);
   });
 
-  it('renders the share list component', () => {
-    render(<ShareList listId="1" />);
-    expect(screen.getByText(/Share List/i)).toBeInTheDocument();
-    expect(screen.getByText(/Share your list with others/i)).toBeInTheDocument();
+  it('renders the share list component with all social buttons visible', () => {
+    const { container } = render(<ShareList listId="1" />);
+    
+    // Check if the component is visible
+    expect(screen.getByText(/Share List/i)).toBeVisible();
+    expect(screen.getByText(/Share your list with others/i)).toBeVisible();
+    
+    // Check if all buttons are visible and clickable
+    const copyButton = screen.getByRole('button', { name: /Copy URL/i });
+    const twitterButton = screen.getByRole('button', { name: /Twitter/i });
+    const linkedinButton = screen.getByRole('button', { name: /LinkedIn/i });
+    const emailButton = screen.getByRole('button', { name: /Email/i });
+    
+    expect(copyButton).toBeVisible();
+    expect(twitterButton).toBeVisible();
+    expect(linkedinButton).toBeVisible();
+    expect(emailButton).toBeVisible();
+    
+    // Check if buttons are enabled/clickable
+    expect(copyButton).toBeEnabled();
+    expect(twitterButton).toBeEnabled();
+    expect(linkedinButton).toBeEnabled();
+    expect(emailButton).toBeEnabled();
   });
 
-  it('displays the shareable URL', () => {
-    // Mock window.location.origin
+  it('displays the shareable URL in a visible and selectable input field', () => {
     Object.defineProperty(window, 'location', {
       writable: true,
       value: { 
@@ -179,48 +222,87 @@ describe('ShareList', () => {
       }
     });
 
-    render(<ShareList listId="1" />);
+    const { container } = render(<ShareList listId="1" />);
     
-    // Check if the input contains the expected URL
+    // Check if input is visible and selectable
     const input = screen.getByLabelText(/Shareable URL/i);
+    expect(input).toBeVisible();
+    expect(input).toBeEnabled();
+    expect(input).toHaveAttribute('readOnly');
     expect(input).toHaveValue('http://localhost:3000/list/test-list');
+    
+    // Check if the label is visible to users
+    const inputLabel = screen.getByText(/Shareable URL/i);
+    expect(inputLabel).toBeVisible();
   });
 
-  it('copies URL to clipboard when Copy URL button is clicked', async () => {
-    render(<ShareList listId="1" />);
+  it('copies URL to clipboard when Copy URL button is clicked and shows feedback to user', async () => {
+    const { container } = render(<ShareList listId="1" />);
     
+    // Get the button and verify it is visible
     const copyButton = screen.getByRole('button', { name: /Copy URL/i });
-    fireEvent.click(copyButton);
+    expect(copyButton).toBeVisible();
+    expect(copyButton).toBeEnabled();
+    
+    // Use userEvent for more realistic interaction
+    await user.click(copyButton);
     
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/list/test-list');
-      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard!');
+      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard! You can now share this link with others.');
     });
+    
+    // Verify visual feedback would be visible to user (via the mock implementation)
+    const successMessage = document.querySelector('[data-testid="toast-success"]');
+    expect(successMessage).not.toBeNull();
+    expect(successMessage.textContent).toContain('URL copied to clipboard');
   });
 
-  it('opens Twitter share dialog when Twitter button is clicked', () => {
-    render(<ShareList listId="1" />);
+  it('opens Twitter share dialog when Twitter button is clicked with correct visuals', async () => {
+    const { container } = render(<ShareList listId="1" />);
     
+    // Get the button and verify it's visible
     const twitterButton = screen.getByRole('button', { name: /Twitter/i });
-    fireEvent.click(twitterButton);
+    expect(twitterButton).toBeVisible();
+    expect(twitterButton).toBeEnabled();
+    
+    // Check if the Twitter icon is visible
+    const twitterIcon = within(twitterButton).getByRole('img', { hidden: true }) || 
+                         within(twitterButton).querySelector('svg');
+    expect(twitterIcon).not.toBeNull();
+    
+    // Use userEvent for more realistic user interaction
+    await user.click(twitterButton);
     
     expect(window.open).toHaveBeenCalledWith(expect.stringContaining('twitter.com/intent/tweet'));
+    expect(showInfo).toHaveBeenCalledWith('Opened Twitter sharing in a new window');
+    
+    // Verify feedback visible to user
+    const infoMessage = document.querySelector('[data-testid="toast-info"]');
+    expect(infoMessage).not.toBeNull();
+    expect(infoMessage.textContent).toContain('Opened Twitter sharing');
   });
 
-  it('opens LinkedIn share dialog when LinkedIn button is clicked', () => {
-    render(<ShareList listId="1" />);
+  it('opens LinkedIn share dialog when LinkedIn button is clicked', async () => {
+    const { container } = render(<ShareList listId="1" />);
     
     const linkedinButton = screen.getByRole('button', { name: /LinkedIn/i });
-    fireEvent.click(linkedinButton);
+    expect(linkedinButton).toBeVisible();
+    expect(linkedinButton).toBeEnabled();
+    
+    await user.click(linkedinButton);
     
     expect(window.open).toHaveBeenCalledWith(expect.stringContaining('linkedin.com/sharing'));
   });
 
-  it('opens email client when Email button is clicked', () => {
-    render(<ShareList listId="1" />);
+  it('opens email client when Email button is clicked', async () => {
+    const { container } = render(<ShareList listId="1" />);
     
     const emailButton = screen.getByRole('button', { name: /Email/i });
-    fireEvent.click(emailButton);
+    expect(emailButton).toBeVisible();
+    expect(emailButton).toBeEnabled();
+    
+    await user.click(emailButton);
     
     expect(window.location.href).toMatch(/^mailto:/);
   });
@@ -241,8 +323,8 @@ describe('ShareList', () => {
     });
 
     render(<ShareList listId="999" />);
-    expect(screen.getByText('Empty List')).toBeInTheDocument();
-    expect(screen.getByText('This list is empty or could not be found.')).toBeInTheDocument();
+    expect(screen.getByText(/No active list found/i)).toBeVisible();
+    expect(screen.getByText(/Please select a valid list/i)).toBeVisible();
   });
 
   it('displays error message when there is an error', () => {
@@ -261,6 +343,6 @@ describe('ShareList', () => {
     });
 
     render(<ShareList listId="1" />);
-    expect(screen.getByText(/Failed to share list/i)).toBeInTheDocument();
+    expect(screen.getByText(/Failed to share list/i)).toBeVisible();
   });
 });

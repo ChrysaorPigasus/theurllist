@@ -407,4 +407,56 @@ export class ListEditorPage {
     const errorElement = this.selectors.errorMessage();
     return await errorElement.textContent();
   }
+
+  /**
+   * Get the publish section
+   * @returns {Locator} - Locator for the publish section
+   */
+  getPublishSection() {
+    return this.page.locator('[data-testid="publish-section"], #publish-section, div:has(> h3:has-text("Publish")), div:has(> button:has-text("Publish List"))');
+  }
+
+  /**
+   * Get share button
+   * @returns {Locator} - Locator for the share button
+   */
+  getShareButton() {
+    return this.page.locator('[data-testid="share-button"], button:has-text("Share"), summary:has-text("Share")');
+  }
+
+  /**
+   * Get share section
+   * @returns {Locator} - Locator for the share section
+   */
+  getShareSection() {
+    return this.page.locator('[data-testid="share-section"], #share-section, div:has(> h3:has-text("Share")), div:has(> input#share-url)');
+  }
+
+  /**
+   * Get copy URL button
+   * @returns {Locator} - Locator for the copy URL button
+   */
+  getCopyUrlButton() {
+    return this.page.locator('[data-testid="copy-url-button"], button:has-text("Copy URL")');
+  }
+  
+  /**
+   * Get share button for specific platform
+   * @param {string} platform - Platform name (Twitter, LinkedIn, Email)
+   * @returns {Locator} - Locator for the specific share button
+   */
+  getShareButton(platform?: string) {
+    if (platform) {
+      return this.page.locator(`[data-testid="share-${platform.toLowerCase()}-button"], button:has-text("${platform}"), a:has-text("${platform}")`);
+    }
+    return this.page.locator('[data-testid="share-button"], button:has-text("Share"), summary:has-text("Share")');
+  }
+
+  /**
+   * Get shareable URL input
+   * @returns {Locator} - Locator for the shareable URL input
+   */
+  getShareableUrlInput() {
+    return this.page.locator('[data-testid="share-url-input"], input#share-url, input[aria-label="Shareable URL"]');
+  }
 }

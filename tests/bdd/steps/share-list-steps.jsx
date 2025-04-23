@@ -9,6 +9,7 @@ import { ListEditorPage } from '@tests/bdd/pages/ListEditorPage.jsx';
 
 /**
  * Steps for sharing a list (FR010)
+ * Verbeterd met expliciete zichtbaarheidscontroles
  */
 
 const feature = loadFeature('@tests/bdd/features/share-list.feature');
@@ -41,29 +42,52 @@ defineFeature(feature, (test) => {
 
     and('I have published my list', async () => {
       await listEditorPage.openPublishSection();
+      // Controleer eerst of de publiceer sectie zichtbaar is
+      await expect(listEditorPage.getPublishSection()).toBeVisible();
       await listEditorPage.publishList();
     });
 
     when('I navigate to the "My URL Collection" list', async () => {
       await listsPage.navigateToListsPage();
-      await listsPage.getListLinkByName("My URL Collection").first().click();
+      const listLink = listsPage.getListLinkByName("My URL Collection").first();
+      // Controleer of de link zichtbaar is voordat erop wordt geklikt
+      await expect(listLink).toBeVisible();
+      await listLink.click();
     });
 
     and('I open the "Share List" section', async () => {
+      // Controleer eerst of de share knop zichtbaar is
+      const shareButton = listEditorPage.getShareButton();
+      await expect(shareButton).toBeVisible();
       await listEditorPage.openShareListSection();
+      
+      // Controleer of de share sectie daadwerkelijk zichtbaar is geworden
+      await expect(listEditorPage.getShareSection()).toBeVisible();
     });
 
     and('I click the "Copy URL" button', async () => {
+      // Controleer of de kopieer knop zichtbaar is voordat erop wordt geklikt
+      const copyButton = listEditorPage.getCopyUrlButton();
+      await expect(copyButton).toBeVisible();
+      await expect(copyButton).toBeEnabled();
       await listEditorPage.clickCopyUrlButton();
     });
 
     then('I should see a confirmation that the URL was copied to clipboard', async () => {
-      await expect(listEditorPage.getUrlCopiedMessage()).toBeVisible();
+      // Controleer of de bevestigingsmelding daadwerkelijk zichtbaar is
+      await expect(listEditorPage.getUrlCopiedMessage()).toBeVisible({timeout: 5000});
     });
 
     and('the clipboard should contain the shareable URL for my list', async () => {
-      // Note: Testing clipboard permissions may require special permissions
-      // This is a check that the UI indicates it worked
+      // Controleer of de URL daadwerkelijk zichtbaar was in de UI
+      const urlInput = listEditorPage.getShareableUrlInput();
+      await expect(urlInput).toBeVisible();
+      
+      // Controleer of de juiste URL in het input veld staat
+      const inputValue = await urlInput.inputValue();
+      expect(inputValue).toContain('/list/');
+      
+      // Note: Daadwerkelijke clipboard testing zou extra permissies vereisen
       await expect(listEditorPage.getUrlCopiedMessage()).toBeVisible();
     });
   });
@@ -81,32 +105,46 @@ defineFeature(feature, (test) => {
 
     and('I have published my list', async () => {
       await listEditorPage.openPublishSection();
+      await expect(listEditorPage.getPublishSection()).toBeVisible();
       await listEditorPage.publishList();
       listUrl = await listEditorPage.getPublicUrl();
     });
 
     when('I navigate to the "My URL Collection" list', async () => {
       await listsPage.navigateToListsPage();
-      await listsPage.getListLinkByName("My URL Collection").first().click();
+      const listLink = listsPage.getListLinkByName("My URL Collection").first();
+      await expect(listLink).toBeVisible();
+      await listLink.click();
     });
 
     and('I open the "Share List" section', async () => {
+      const shareButton = listEditorPage.getShareButton();
+      await expect(shareButton).toBeVisible();
       await listEditorPage.openShareListSection();
+      await expect(listEditorPage.getShareSection()).toBeVisible();
     });
 
     and('I click the "Twitter" button', async () => {
+      // Controleer of de Twitter knop zichtbaar is
+      const twitterButton = listEditorPage.getShareButton('Twitter');
+      await expect(twitterButton).toBeVisible();
+      await expect(twitterButton).toBeEnabled();
+      
       // Set up a new page listener to intercept the new window
       const pagePromise = world.context.waitForEvent('page');
-      await listEditorPage.clickShareButton('Twitter');
+      await twitterButton.click();
       const newPage = await pagePromise;
       await newPage.waitForLoadState();
       world.twitterPage = newPage;
     });
 
     then('I should be redirected to Twitter with a pre-filled post containing my list URL', async () => {
-      // Check that Twitter page URL contains the list URL
+      // Check that Twitter page URL contains the list URL and is loaded
       expect(world.twitterPage.url()).toContain('twitter.com');
       expect(world.twitterPage.url()).toContain('text=');
+      
+      // Controleer of de Twitter pagina daadwerkelijk zichtbaar is
+      await expect(world.twitterPage.locator('body')).toBeVisible();
       
       // Close the Twitter page after verification
       await world.twitterPage.close();
@@ -126,32 +164,46 @@ defineFeature(feature, (test) => {
 
     and('I have published my list', async () => {
       await listEditorPage.openPublishSection();
+      await expect(listEditorPage.getPublishSection()).toBeVisible();
       await listEditorPage.publishList();
       listUrl = await listEditorPage.getPublicUrl();
     });
 
     when('I navigate to the "My URL Collection" list', async () => {
       await listsPage.navigateToListsPage();
-      await listsPage.getListLinkByName("My URL Collection").first().click();
+      const listLink = listsPage.getListLinkByName("My URL Collection").first();
+      await expect(listLink).toBeVisible();
+      await listLink.click();
     });
 
     and('I open the "Share List" section', async () => {
+      const shareButton = listEditorPage.getShareButton();
+      await expect(shareButton).toBeVisible();
       await listEditorPage.openShareListSection();
+      await expect(listEditorPage.getShareSection()).toBeVisible();
     });
 
     and('I click the "LinkedIn" button', async () => {
+      // Controleer of de LinkedIn knop zichtbaar is
+      const linkedinButton = listEditorPage.getShareButton('LinkedIn');
+      await expect(linkedinButton).toBeVisible();
+      await expect(linkedinButton).toBeEnabled();
+      
       // Set up a new page listener to intercept the new window
       const pagePromise = world.context.waitForEvent('page');
-      await listEditorPage.clickShareButton('LinkedIn');
+      await linkedinButton.click();
       const newPage = await pagePromise;
       await newPage.waitForLoadState();
       world.linkedinPage = newPage;
     });
 
     then('I should be redirected to LinkedIn with my list URL pre-filled for sharing', async () => {
-      // Check that LinkedIn page URL contains the list URL
+      // Check that LinkedIn page URL contains the list URL and is loaded
       expect(world.linkedinPage.url()).toContain('linkedin.com');
       expect(world.linkedinPage.url()).toContain('url=');
+      
+      // Controleer of de LinkedIn pagina daadwerkelijk zichtbaar is
+      await expect(world.linkedinPage.locator('body')).toBeVisible();
       
       // Close the LinkedIn page after verification
       await world.linkedinPage.close();
@@ -169,21 +221,32 @@ defineFeature(feature, (test) => {
 
     and('I have published my list', async () => {
       await listEditorPage.openPublishSection();
+      await expect(listEditorPage.getPublishSection()).toBeVisible();
       await listEditorPage.publishList();
     });
 
     when('I navigate to the "My URL Collection" list', async () => {
       await listsPage.navigateToListsPage();
-      await listsPage.getListLinkByName("My URL Collection").first().click();
+      const listLink = listsPage.getListLinkByName("My URL Collection").first();
+      await expect(listLink).toBeVisible();
+      await listLink.click();
     });
 
     and('I open the "Share List" section', async () => {
+      const shareButton = listEditorPage.getShareButton();
+      await expect(shareButton).toBeVisible();
       await listEditorPage.openShareListSection();
+      await expect(listEditorPage.getShareSection()).toBeVisible();
     });
 
     and('I click the "Email" button', async () => {
+      // Controleer of de Email knop zichtbaar is
+      const emailButton = listEditorPage.getShareButton('Email');
+      await expect(emailButton).toBeVisible();
+      await expect(emailButton).toBeEnabled();
+      
       // Mock clicking the email button
-      await listEditorPage.clickShareButton('Email');
+      await emailButton.click();
     });
 
     then('my default email client should open', async () => {
@@ -220,11 +283,16 @@ defineFeature(feature, (test) => {
 
     when('I navigate to the "Private Collection" list', async () => {
       await listsPage.navigateToListsPage();
-      await listsPage.getListLinkByName("Private Collection").first().click();
+      const listLink = listsPage.getListLinkByName("Private Collection").first();
+      await expect(listLink).toBeVisible();
+      await listLink.click();
     });
 
     and('I open the "Share List" section', async () => {
+      const shareButton = listEditorPage.getShareButton();
+      await expect(shareButton).toBeVisible();
       await listEditorPage.openShareListSection();
+      await expect(listEditorPage.getShareSection()).toBeVisible();
     });
 
     then('I should see a message indicating I need to publish the list first', async () => {

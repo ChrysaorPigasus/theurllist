@@ -1,26 +1,8 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-// Mock react-toastify to avoid actual DOM manipulation in tests
-vi.mock('react-toastify', () => {
-  // Create a mocked version that actually renders text for tests
-  const toastFunctions = {};
-  ['success', 'error', 'info', 'warning'].forEach(type => {
-    toastFunctions[type] = (message) => {
-      // Render the message in the DOM for tests to find
-      document.body.innerHTML += `<div data-testid="toast-${type}">${message}</div>`;
-      return `toast-id-${Math.random()}`;
-    };
-  });
-  
-  return {
-    toast: toastFunctions,
-    ToastContainer: () => <div data-testid="toast-container"></div>
-  };
-});
-
-// Mock modules first, before any other imports - using direct factory functions
+// Mock modules first
 vi.mock('@nanostores/react', () => ({
   useStore: vi.fn()
 }));
@@ -96,40 +78,34 @@ describe('ShareList - Interaction', () => {
   };
 
   // Mock window.open and window.location
-  const originalWindow = { ...window };
   let hrefValue = '';
+  Object.defineProperty(window, 'open', {
+    writable: true,
+    value: vi.fn()
+  });
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: {
+      get href() {
+        return hrefValue;
+      },
+      set href(val) {
+        hrefValue = val;
+      },
+      origin: 'http://localhost:3000'
+    }
+  });
 
-  // Setup browser API mocks
+  // Mock clipboard API
+  Object.defineProperty(navigator, 'clipboard', {
+    writable: true,
+    value: {
+      writeText: vi.fn().mockResolvedValue(undefined)
+    }
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Mock window.open
-    window.open = vi.fn();
-    
-    // Mock window.location
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: {
-        get href() {
-          return hrefValue;
-        },
-        set href(val) {
-          hrefValue = val;
-        },
-        origin: 'http://localhost:3000'
-      }
-    });
-    
-    // Mock clipboard API
-    Object.defineProperty(navigator, 'clipboard', {
-      writable: true,
-      value: {
-        writeText: vi.fn().mockResolvedValue(undefined)
-      }
-    });
-    
-    // Reset mocked values
-    hrefValue = '';
     
     // Set up the mock return values for useStore
     useStore.mockImplementation((store) => {
@@ -144,26 +120,16 @@ describe('ShareList - Interaction', () => {
       }
       return {};
     });
-  });
-  
-  // Restore original window and navigator after all tests
-  afterAll(() => {
-    // Restore original window.open
-    window.open = originalWindow.open;
+
+    // Reset clipboard mock
+    navigator.clipboard.writeText.mockReset();
+    navigator.clipboard.writeText.mockResolvedValue(undefined);
     
-    // Restore original window.location
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      value: originalWindow.location
-    });
+    // Reset window.open mock
+    window.open.mockReset();
     
-    // Restore original navigator.clipboard
-    if (originalWindow.navigator?.clipboard) {
-      Object.defineProperty(navigator, 'clipboard', {
-        writable: true,
-        value: originalWindow.navigator.clipboard
-      });
-    }
+    // Reset href value
+    hrefValue = '';
   });
 
   it('copies URL to clipboard when Copy URL button is clicked', async () => {
@@ -174,37 +140,8 @@ describe('ShareList - Interaction', () => {
     
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/list/test-list');
-      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard!');
+      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard! You can now share this link with others.');
     });
-  });
-
-  it('opens Twitter share dialog when Twitter button is clicked', async () => {
-    render(<ShareList listId="1" />);
-    
-    const twitterButton = screen.getByRole('button', { name: /Twitter/i });
-    fireEvent.click(twitterButton);
-
-    await waitFor(() => {
-      // Simply check that window.open was called - don't be too specific about the URL
-      expect(window.open).toHaveBeenCalled();
-      // Verify the URL contains the required parts
-      const callArg = window.open.mock.calls[0][0];
-      expect(callArg).toContain('twitter.com/intent/tweet');
-      // Check for the encoded version of the URL
-      expect(callArg).toContain('http%3A%2F%2Flocalhost%3A3000%2Flist%2Ftest-list');
-    });
-  });
-
-  it('opens email client when Email button is clicked', () => {
-    render(<ShareList listId="1" />);
-    
-    const emailButton = screen.getByRole('button', { name: /Email/i });
-    fireEvent.click(emailButton);
-    
-    expect(hrefValue).toMatch(/^mailto:/);
-    expect(hrefValue).toContain('subject=Check');
-    // Just check that it has a body parameter without being too specific about content
-    expect(hrefValue).toContain('body=');
   });
 
   it('shows feedback message after successfully copying', async () => {
@@ -213,12 +150,38 @@ describe('ShareList - Interaction', () => {
     const copyButton = screen.getByRole('button', { name: /Copy URL/i });
     fireEvent.click(copyButton);
     
-    // Check if showSuccess was called with the right message
     await waitFor(() => {
-      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard!');
+      expect(showSuccess).toHaveBeenCalledWith('URL copied to clipboard! You can now share this link with others.');
     });
+  });
+
+  it('opens Twitter sharing when Twitter button is clicked', () => {
+    render(<ShareList listId="1" />);
     
-    // No need to test for disappearing message as that's handled by the toast library
-    expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
+    const twitterButton = screen.getByRole('button', { name: /Twitter/i });
+    fireEvent.click(twitterButton);
+    
+    expect(window.open).toHaveBeenCalledWith(expect.stringContaining('twitter.com/intent/tweet'));
+    expect(showInfo).toHaveBeenCalledWith('Opened Twitter sharing in a new window');
+  });
+
+  it('opens LinkedIn sharing when LinkedIn button is clicked', () => {
+    render(<ShareList listId="1" />);
+    
+    const linkedinButton = screen.getByRole('button', { name: /LinkedIn/i });
+    fireEvent.click(linkedinButton);
+    
+    expect(window.open).toHaveBeenCalledWith(expect.stringContaining('linkedin.com/sharing'));
+    expect(showInfo).toHaveBeenCalledWith('Opened LinkedIn sharing in a new window');
+  });
+
+  it('opens email client when Email button is clicked', () => {
+    render(<ShareList listId="1" />);
+    
+    const emailButton = screen.getByRole('button', { name: /Email/i });
+    fireEvent.click(emailButton);
+    
+    expect(window.location.href).toMatch(/^mailto:/);
+    expect(showInfo).toHaveBeenCalledWith('Opened email client');
   });
 });

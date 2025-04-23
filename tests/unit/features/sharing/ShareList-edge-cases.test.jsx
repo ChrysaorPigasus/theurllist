@@ -104,9 +104,9 @@ describe('ShareList - Edge Cases', () => {
     const { container } = render(<ShareList listId="999" />);
     expect(container).not.toBeEmptyDOMElement(); // Should render EmptyState component
     
-    // Use getAllByText instead of getByText since multiple elements match the pattern
-    const emptyStateElements = screen.getAllByText(/Empty List|could not be found/i);
-    expect(emptyStateElements.length).toBeGreaterThan(0);
+    // Check for the actual text rendered in the component
+    const noListFoundMessage = screen.getByText(/No active list found/i);
+    expect(noListFoundMessage).toBeInTheDocument();
   });
 
   it('shows error message when there is an error', () => {
@@ -175,7 +175,6 @@ describe('ShareList - Edge Cases', () => {
     });
 
     render(<ShareList listId="1" />);
-    expect(screen.getByText(/Empty List/i)).toBeInTheDocument();
-    expect(screen.getByText(/There are no urls in this list/i)).toBeInTheDocument();
+    expect(screen.getByText(/This list is empty/i)).toBeInTheDocument();
   });
 });
